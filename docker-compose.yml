@@ -26,6 +26,12 @@ services:
       DB_PORT: 5432
       NEXRH_MIGRAR: "false"
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--max-time=3600"]
+    # A fila não roda o Nginx: a verificação de saúde da imagem (porta 8080) não se aplica aqui.
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'queue:work' >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      start_period: 60s
     volumes:
       - arquivos:/var/www/html/storage/app
       - logs:/var/www/html/storage/logs
