@@ -115,6 +115,25 @@
     <tr>{!! $c('Banco', trim($s->banco_codigo.' · '.$s->banco_nome, ' ·'), 3) !!}{!! $c('Agência', $s->agencia, 1) !!}{!! $c('Conta corrente', $s->conta_corrente, 2) !!}</tr>
 </table>
 
+<h3>Dependentes</h3>
+<table class="lista">
+    <thead><tr>
+        <th style="width:31%">Nome</th><th style="width:13%">CPF</th><th style="width:10%">Nascimento</th><th style="width:5%">Sexo</th>
+        <th style="width:9%">Parentesco</th><th style="width:5%">IR</th><th style="width:7%">Previd.</th><th style="width:7%">Sal.-fam.</th><th style="width:5%">PcD</th><th style="width:8%">Univers.</th>
+    </tr></thead>
+    <tbody>
+        @forelse ($dependentes as $dep)
+            <tr>
+                <td>{{ $dep->nome }}</td><td>{{ $dep->cpfFormatado() }}</td><td>{{ $d($dep->data_nascimento) }}</td><td>{{ $dep->sexo }}</td>
+                <td>{{ $dep->parentesco }}</td><td>{{ $sn($dep->declarar_ir) }}</td><td>{{ $sn($dep->declarar_previdencia) }}</td><td>{{ $sn($dep->salario_familia) }}</td>
+                <td>{{ $dep->pcd ? 'Sim ('.$dep->tipo_deficiencia.')' : 'Não' }}</td><td>{{ $sn($dep->universitario) }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="10" style="color:#4A6273">Sem dependentes cadastrados.</td></tr>
+        @endforelse
+    </tbody>
+</table>
+
 <table class="assin"><tr>
     <td style="width:40%"><div class="linha">Local e data</div></td>
     <td><div class="linha">Assinatura do(a) servidor(a)</div></td>

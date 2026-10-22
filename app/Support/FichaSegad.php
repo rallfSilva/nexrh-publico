@@ -37,6 +37,21 @@ final class FichaSegad
         99 => 'Não deficiente',
     ];
 
+    /** Códigos de parentesco do dependente (tabela do eSocial usada na ficha), com dois dígitos. */
+    public const PARENTESCOS = [
+        '01' => 'Cônjuge',
+        '02' => 'Companheiro(a) com filho, união há mais de 5 anos ou declaração de união estável',
+        '03' => 'Filho(a) ou enteado(a)',
+        '04' => 'Filho(a) ou enteado(a) universitário(a) ou em escola técnica de 2º grau',
+        '06' => 'Irmão(ã), neto(a) ou bisneto(a) sob guarda judicial',
+        '07' => 'Irmão(ã), neto(a) ou bisneto(a) sob guarda judicial, universitário(a) ou em escola técnica',
+        '09' => 'Pais, avós e bisavós',
+        '10' => 'Menor pobre sob guarda judicial',
+        '11' => 'Pessoa absolutamente incapaz sob tutela ou curatela',
+        '12' => 'Ex-cônjuge',
+        '99' => 'Agregado/Outros',
+    ];
+
     public const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
     public const CATEGORIAS_RESERVA = [
@@ -102,8 +117,13 @@ final class FichaSegad
             return null;
         }
 
-        if (preg_match('/^(\d+)\s*-/', $valor, $m) && array_key_exists((int) $m[1], $lista)) {
-            return (int) $m[1];
+        if (preg_match('/^(\d+)\s*(-|$)/', $valor, $m)) {
+            // "03" é chave texto no PHP; "3", "10" e "99" viram chaves inteiras.
+            foreach ([(int) $m[1], str_pad($m[1], 2, '0', STR_PAD_LEFT)] as $chave) {
+                if (array_key_exists($chave, $lista)) {
+                    return $chave;
+                }
+            }
         }
 
         $chave = mb_strtolower($valor);

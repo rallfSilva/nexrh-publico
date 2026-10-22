@@ -159,9 +159,24 @@ document.addEventListener('click', (e) => {
     if (remover) remover.closest('.linha-lista').remove();
 });
 
-/* Diálogos de confirmação (ex.: desligamento). */
+/* Diálogos de confirmação (ex.: desligamento). Um mesmo diálogo pode servir a
+   vários itens: data-acao troca o destino do formulário e data-titulo o texto. */
 $$('[data-abrir-dialogo]').forEach((botao) => {
-    botao.addEventListener('click', () => document.getElementById(botao.dataset.abrirDialogo).showModal());
+    botao.addEventListener('click', () => {
+        const dialogo = document.getElementById(botao.dataset.abrirDialogo);
+        const form = dialogo.querySelector('form');
+        if (botao.dataset.acao && form) {
+            form.action = botao.dataset.acao;
+            const memoria = form.querySelector('[name="acao_dialogo"]');
+            if (memoria) memoria.value = botao.dataset.acao;
+        }
+        if (botao.dataset.titulo) {
+            const alvo = dialogo.querySelector('[data-titulo-dialogo]');
+            if (alvo) alvo.textContent = botao.dataset.titulo;
+        }
+        dialogo.showModal();
+        dialogo.querySelector('input:not([type=hidden]), select, textarea')?.focus();
+    });
 });
 $$('[data-fechar-dialogo]').forEach((botao) => {
     botao.addEventListener('click', () => botao.closest('dialog').close());

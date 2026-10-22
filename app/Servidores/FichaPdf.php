@@ -19,6 +19,7 @@ class FichaPdf
             'parentesco' => $servidor->ultimaDeclaracao('parentesco'),
             'acumulacao' => $servidor->ultimaDeclaracao('acumulacao'),
             'bens' => $servidor->ultimaDeclaracao('bens'),
+            'dependentes' => $servidor->dependentes()->ativos()->get(),
             'geradoEm' => now(),
         ])->setPaper('a4');
 

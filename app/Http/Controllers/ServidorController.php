@@ -97,14 +97,17 @@ class ServidorController extends Controller
 
     public function show(Request $request, Servidor $servidor): View
     {
-        $servidor->load(['unidade.chefe', 'vaga.cargo', 'usuario', 'declaracoes.registradaPor', 'eventos.usuario']);
+        // Dossiê e dependentes: só para quem vê os dados pessoais (RH e administração).
+        $completo = $request->user()->can('servidores.dados_pessoais');
+        $servidor->load(['unidade.chefe', 'vaga.cargo', 'usuario', 'declaracoes.registradaPor', 'eventos.usuario',
+            ...($completo ? ['documentos.enviadoPor', 'documentos.analisadoPor', 'dependentes'] : [])]);
 
         Auditoria::registrar('acesso', $servidor, 'Ficha de '.$servidor->nome.' consultada');
 
         return view('servidores.show', [
             'servidor' => $servidor,
-            'completo' => $request->user()->can('servidores.dados_pessoais'),
-            'pendencias' => $servidor->pendencias(),
+            'completo' => $completo,
+            'pendencias' => [...$servidor->pendencias(), ...($completo ? $servidor->pendenciasDoDossie() : [])],
         ]);
     }
 

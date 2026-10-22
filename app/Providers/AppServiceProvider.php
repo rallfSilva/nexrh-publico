@@ -31,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         // RH, administração e auditoria veem o órgão todo; a chefia, só a própria equipe.
         Gate::define('listar-servidores', fn (User $u) => $u->can('servidores.ver') || $u->can('servidores.ver_equipe'));
 
+        // Dossiê e dependentes são dados pessoais: quem gerencia servidores e vê dados pessoais.
+        Gate::define('gerenciar-dossie', fn (User $u) => $u->can('servidores.gerenciar') && $u->can('servidores.dados_pessoais'));
+
         Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar'));
 
         // Usuários de outro órgão respondem 404, como se não existissem.

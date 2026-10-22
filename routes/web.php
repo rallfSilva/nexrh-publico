@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\DeclaracaoController;
+use App\Http\Controllers\DependenteController;
+use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\ImportacaoController;
 use App\Http\Controllers\MinhaFichaController;
 use App\Http\Controllers\ModeloImportacaoController;
@@ -79,11 +81,32 @@ Route::middleware(['auth', 'ativo'])->group(function () {
             Route::get('/servidores', [ServidorController::class, 'index'])->name('servidores.index');
             Route::get('/servidores/{servidor}', [ServidorController::class, 'show'])->whereNumber('servidor')->name('servidores.show');
         });
+        // Dossiê e dependentes: dados pessoais, só para RH e administração do órgão.
+        Route::middleware(['can:servidores.gerenciar', 'can:servidores.dados_pessoais'])->whereNumber(['servidor', 'dependente', 'documento'])->scopeBindings()->group(function () {
+            Route::get('/documentos/a-validar', [DocumentoController::class, 'pendentes'])->name('documentos.pendentes');
+            Route::post('/servidores/{servidor}/documentos', [DocumentoController::class, 'store'])->middleware('throttle:30,1')->name('documentos.store');
+            Route::post('/servidores/{servidor}/documentos/{documento}/validar', [DocumentoController::class, 'validar'])->name('documentos.validar');
+            Route::post('/servidores/{servidor}/documentos/{documento}/recusar', [DocumentoController::class, 'recusar'])->name('documentos.recusar');
+            Route::post('/servidores/{servidor}/documentos/{documento}/arquivar', [DocumentoController::class, 'arquivar'])->name('documentos.arquivar');
+
+            Route::get('/servidores/{servidor}/dependentes/novo', [DependenteController::class, 'create'])->name('dependentes.create');
+            Route::post('/servidores/{servidor}/dependentes', [DependenteController::class, 'store'])->name('dependentes.store');
+            Route::get('/servidores/{servidor}/dependentes/{dependente}/editar', [DependenteController::class, 'edit'])->name('dependentes.edit');
+            Route::put('/servidores/{servidor}/dependentes/{dependente}', [DependenteController::class, 'update'])->name('dependentes.update');
+            Route::post('/servidores/{servidor}/dependentes/{dependente}/encerrar', [DependenteController::class, 'encerrar'])->name('dependentes.encerrar');
+            Route::post('/servidores/{servidor}/dependentes/{dependente}/reativar', [DependenteController::class, 'reativar'])->name('dependentes.reativar');
+        });
+        Route::get('/servidores/{servidor}/documentos/{documento}/arquivo', [DocumentoController::class, 'arquivo'])
+            ->whereNumber(['servidor', 'documento'])->scopeBindings()->middleware(['can:servidores.dados_pessoais', 'throttle:60,1'])->name('documentos.arquivo');
+
         Route::get('/servidores/{servidor}/ficha.pdf', [ServidorController::class, 'pdf'])
             ->whereNumber('servidor')->middleware(['can:servidores.dados_pessoais', 'throttle:30,1'])->name('servidores.pdf');
 
         Route::get('/minha-ficha', [MinhaFichaController::class, 'show'])->name('minha-ficha');
         Route::get('/minha-ficha/ficha.pdf', [MinhaFichaController::class, 'pdf'])->middleware('throttle:10,1')->name('minha-ficha.pdf');
+        Route::post('/minha-ficha/documentos', [MinhaFichaController::class, 'enviarDocumento'])->middleware('throttle:20,1')->name('minha-ficha.documentos.store');
+        Route::get('/minha-ficha/documentos/{documento}/arquivo', [MinhaFichaController::class, 'arquivo'])
+            ->whereNumber('documento')->middleware('throttle:60,1')->name('minha-ficha.documentos.arquivo');
 
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->middleware('can:auditoria.ver')->name('auditoria.index');
 

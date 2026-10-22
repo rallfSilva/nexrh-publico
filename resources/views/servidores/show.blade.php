@@ -6,6 +6,9 @@
     $sn = fn ($v) => $v === null ? null : ($v ? 'Sim' : 'Não');
     $cargo = $s->vaga?->cargo;
     $gerencia = ! $propria && auth()->user()->can('servidores.gerenciar');
+    // Dossiê e dependentes: RH e administração (completo) ou o próprio servidor.
+    $gerenciaDossie = ! $propria && auth()->user()->can('gerenciar-dossie');
+    $podeEnviar = $s->ativo() && ($propria || $gerenciaDossie);
     $declaracoes = $s->declaracoes->groupBy('tipo');
     $campo = function (string $rotulo, $valor) {
         $vazio = $valor === null || $valor === '';
@@ -53,10 +56,14 @@
     <div class="ficha-lay">
         <section class="card">
             <div class="abas" role="tablist" data-abas>
-                <a role="tab" class="aba" href="?aba=funcionais" data-aba="funcionais" aria-controls="funcionais">Dados funcionais</a>
-                <a role="tab" class="aba" href="?aba=pessoais" data-aba="pessoais" aria-controls="pessoais">Dados pessoais</a>
+                <a role="tab" class="aba" href="?aba=funcionais" data-aba="funcionais" aria-controls="funcionais">Funcionais</a>
+                <a role="tab" class="aba" href="?aba=pessoais" data-aba="pessoais" aria-controls="pessoais">Pessoais</a>
                 <a role="tab" class="aba" href="?aba=declaracoes" data-aba="declaracoes" aria-controls="declaracoes">Declarações<span class="n">{{ $declaracoes->count() }}/3</span></a>
-                <a role="tab" class="aba" href="?aba=historico" data-aba="historico" aria-controls="historico">Linha do tempo</a>
+                @if ($completo)
+                    <a role="tab" class="aba" href="?aba=dossie" data-aba="dossie" aria-controls="dossie">Dossiê<span class="n">{{ $s->documentos->where('situacao', '!=', 'arquivado')->count() }}</span></a>
+                    <a role="tab" class="aba" href="?aba=dependentes" data-aba="dependentes" aria-controls="dependentes">Dependentes<span class="n">{{ $s->dependentes->filter->ativo()->count() }}</span></a>
+                @endif
+                <a role="tab" class="aba" href="?aba=historico" data-aba="historico" aria-controls="historico">Histórico</a>
             </div>
 
             {{-- Dados funcionais --}}
@@ -162,6 +169,11 @@
                 <div class="nota"><x-icone nome="cadeado" tamanho="18" /><span>Nomes de parentes, bens e valores ficam criptografados. A ficha em PDF traz as três declarações prontas para assinatura.</span></div>
             </div>
 
+            @if ($completo)
+                <div class="painel-aba" id="dossie" role="tabpanel">@include('servidores.partes.dossie')</div>
+                <div class="painel-aba" id="dependentes" role="tabpanel">@include('servidores.partes.dependentes')</div>
+            @endif
+
             {{-- Linha do tempo --}}
             <div class="painel-aba" id="historico" role="tabpanel">
                 @if ($s->eventos->isEmpty())
@@ -198,6 +210,10 @@
                         @foreach (\App\Models\Declaracao::TIPOS as $tipo => $rotulo)
                             <a href="{{ route('declaracoes.create', [$s, $tipo]) }}" class="btn btn-s"><x-icone nome="pasta" tamanho="18" />{{ str_replace('Declaração de ', 'Declarar ', $rotulo) }}</a>
                         @endforeach
+                        @if ($gerenciaDossie)
+                            <button type="button" class="btn btn-s" data-abrir-dialogo="dialogo-documento"><x-icone nome="enviar" tamanho="18" />Incluir documento no dossiê</button>
+                            <a href="{{ route('dependentes.create', $s) }}" class="btn btn-s"><x-icone nome="familia" tamanho="18" />Cadastrar dependente</a>
+                        @endif
                         <button type="button" class="btn btn-d" data-abrir-dialogo="dialogo-desligar"><x-icone nome="sair" tamanho="18" />Registrar desligamento</button>
                     </div>
                 </section>
@@ -207,11 +223,14 @@
                 @if ($propria)
                     Estes são os seus dados como estão no RH. Se algo estiver errado, avise o RH.
                 @else
-                    Cada acesso a esta ficha fica registrado na trilha de auditoria. CPF e documentos aparecem completos só para o RH.
+                    Cada acesso a esta ficha fica registrado na trilha de auditoria. CPF, documentos, dossiê e dependentes aparecem só para o RH e a administração do órgão.
                 @endif
             </p>
         </aside>
     </div>
+
+    @includeWhen($podeEnviar, 'servidores.partes.dialogos-dossie')
+    @includeWhen($gerenciaDossie, 'servidores.partes.dialogos-rh')
 
     @if ($gerencia && $s->ativo())
         <dialog class="modal" id="dialogo-desligar" aria-labelledby="t-desligar">
