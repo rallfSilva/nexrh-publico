@@ -31,3 +31,15 @@ A fonte Plus Jakarta Sans é empacotada no build (Fontsource). Nenhuma página c
 ## Auditoria de modelos
 
 O trait `Auditable` grava criação, alteração e exclusão com os campos alterados. Campos sensíveis (senha, segredos de duas etapas, tokens) nunca são gravados. Eventos de autenticação vêm de um subscriber de eventos (`AuditarAutenticacao`).
+
+## Dados pessoais do servidor criptografados
+
+CPF, documentos e dados bancários do servidor ficam criptografados no banco (`encrypted` do Laravel, com a chave da aplicação). Para buscar e impedir CPF repetido sem decifrar, o servidor guarda também `cpf_hash`, um HMAC-SHA256 dos dígitos com a mesma chave, único por órgão. Por isso a `APP_KEY` precisa entrar no plano de backup: sem ela os dados não podem ser lidos.
+
+## Campos protegidos na auditoria
+
+Além dos campos que nunca entram na trilha (senha, segredos), o `Auditable` aceita campos "protegidos": a trilha registra que mudaram, com o valor trocado por "[protegido]". Assim fica a prova da alteração sem espalhar CPF, documentos ou dados sensíveis da LGPD pela trilha. Abrir uma ficha e baixar o PDF também ficam registrados.
+
+## PDF gerado no servidor
+
+A ficha em PDF usa o dompdf (`barryvdh/laravel-dompdf`), em PHP puro, sem navegador nem serviço externo, com carregamento de arquivos remotos desligado.

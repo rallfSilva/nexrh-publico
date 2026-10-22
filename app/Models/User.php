@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -43,9 +44,46 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted(): void
+    {
+        // Usuário criado depois do cadastro do servidor: liga os dois pelo CPF.
+        static::saved(function (User $user) {
+            if ($user->cpf && $user->orgao_id && ($user->wasRecentlyCreated || $user->wasChanged('cpf'))) {
+                Servidor::withoutGlobalScopes()
+                    ->where('orgao_id', $user->orgao_id)
+                    ->where('cpf_hash', Cpf::hash($user->cpf))
+                    ->whereNull('user_id')
+                    ->update(['user_id' => $user->id]);
+            }
+        });
+    }
+
     public function orgao(): BelongsTo
     {
         return $this->belongsTo(Orgao::class);
+    }
+
+    /** Cadastro de servidor ligado a este acesso, quando houver. */
+    public function servidor(): HasOne
+    {
+        return $this->hasOne(Servidor::class);
+    }
+
+    /**
+     * Unidades que o usuário chefia e todas as subordinadas: é a "equipe" da chefia.
+     *
+     * @return list<int>
+     */
+    public function idsUnidadesChefiadas(): array
+    {
+        return once(function () {
+            $ids = [];
+            foreach (Unidade::where('chefe_user_id', $this->id)->get() as $unidade) {
+                $ids = [...$ids, $unidade->id, ...$unidade->idsDescendentes()];
+            }
+
+            return array_values(array_unique($ids));
+        });
     }
 
     public function ehAdministradorGeral(): bool

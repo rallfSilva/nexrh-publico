@@ -4,6 +4,7 @@ namespace App\Importacao;
 
 use App\Models\Cargo;
 use App\Models\Importacao;
+use App\Models\Servidor;
 use App\Models\Vaga;
 use App\Support\Auditoria;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ use LogicException;
  */
 class AplicadorQuadroCargos
 {
-    /** @return array{criados: int, atualizados: int, desativados: int, vagas: int} */
+    /** @return array{criados: int, atualizados: int, desativados: int, vagas: int, desvinculados: int} */
     public function aplicar(Importacao $importacao): array
     {
         if (! $importacao->podeAplicar()) {
@@ -34,7 +35,7 @@ class AplicadorQuadroCargos
                 $existentes = Cargo::withoutGlobalScopes()->where('orgao_id', $orgaoId)->get()
                     ->keyBy(fn (Cargo $c) => Texto::chave($c->denominacao).'|'.Texto::chave($c->simbolo));
 
-                $r = ['criados' => 0, 'atualizados' => 0, 'desativados' => 0, 'vagas' => 0];
+                $r = ['criados' => 0, 'atualizados' => 0, 'desativados' => 0, 'vagas' => 0, 'desvinculados' => 0];
                 $importados = [];
 
                 foreach ($cargosPlanilha as $dados) {
@@ -67,6 +68,12 @@ class AplicadorQuadroCargos
 
                     Vaga::withoutGlobalScopes()->where('cargo_id', $cargo->id)->whereNotIn('numero', $numeros)->delete();
                 }
+
+                // Se a planilha diz que a vaga não está mais ocupada, o servidor perde o vínculo
+                // (a ficha mostra a pendência "Sem vaga vinculada").
+                $r['desvinculados'] = Servidor::withoutGlobalScopes()->where('orgao_id', $orgaoId)
+                    ->whereHas('vaga', fn ($q) => $q->withoutGlobalScopes()->where('situacao', '!=', 'ocupada'))
+                    ->update(['vaga_id' => null]);
 
                 $r['desativados'] = Cargo::withoutGlobalScopes()
                     ->where('orgao_id', $orgaoId)->whereNotIn('id', $importados)->where('ativo', true)
