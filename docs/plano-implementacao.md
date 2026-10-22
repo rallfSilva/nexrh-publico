@@ -4,8 +4,8 @@
 |---|---|---|
 | 1 | Base: repositório, Docker, login, perfis, órgãos e unidades, auditoria, layout | Concluída |
 | 2 | Cargos e vagas, com importação e relatório de divergências | Concluída |
-| 3 | Servidores (ficha SEGAD, ficha em PDF) | Em teste pelo cliente |
-| 4 | Dossiê e dependentes | A fazer |
+| 3 | Servidores (ficha SEGAD, ficha em PDF) | Concluída |
+| 4 | Dossiê e dependentes | Em teste pelo cliente |
 | 5 | Férias com bloqueio de conflito e mínimo por setor | A fazer |
 | 6 | Painel, relatórios, API inicial e manual | A fazer |
 
@@ -56,3 +56,21 @@ Use só os dados fictícios da demonstração ou a planilha `exemplo_servidores_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha** vê a própria ficha e baixa o PDF; o menu **Servidores** não aparece.
 12. Abrir a trilha de auditoria: cada abertura de ficha e cada download aparecem; nas alterações de CPF ou documentos aparece "[protegido]" em vez do valor.
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nenhum servidor da SELC aparece.
+
+## Entrega 4: o que testar
+
+Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_ficticio.xlsx` (menu **Modelos de planilha**). Para testar envio de documentos, use arquivos sem dados reais (por exemplo, um PDF qualquer de teste).
+
+1. Entrar como `rh.selc@nexrh.local`, abrir a ficha de Ana Beatriz Martins, aba **Dossiê**: 8 de 10 documentos da posse validados, uma CNH vencida, um documento recusado com o motivo e dois aguardando validação.
+2. Clicar em **Abrir** e **Baixar** em um documento. Depois, na trilha de auditoria, conferir que a visualização e o download ficaram registrados.
+3. **Incluir documento**: tentar sem arquivo, com um arquivo .txt renomeado para .pdf (deve recusar) e com validade antes da data do documento (deve recusar). Incluir um PDF válido: entra como validado.
+4. Abrir **Documentos a validar** no menu: validar um documento e recusar o outro informando o motivo.
+5. Arquivar um documento (pede motivo). Ele sai da lista e aparece em "Arquivados", com o motivo. Não há como apagar.
+6. Aba **Dependentes**: ver os dois filhos da Ana. Cadastrar um dependente novo; testar CPF inválido, o CPF da própria servidora, um segundo cônjuge e deficiência sem o tipo (devem recusar).
+7. Cadastrar um filho de 16 anos com salário-família e um de 23 anos com IR: os dois aparecem nas pendências da ficha. Marcar o de 23 como universitário (código 04): a pendência dele some.
+8. Encerrar um dependente (data e motivo) e reativar.
+9. Baixar a **Ficha em PDF** e conferir a seção de dependentes.
+10. Em **Importar planilha** › Dependentes, enviar o exemplo fictício: 67 linhas prontas, 5 com erro (titular inexistente, CPF inválido, segundo cônjuge, sem data de nascimento e salário-família para o pai) e 2 avisos de idade. Nenhum CPF completo aparece. Confirmar e enviar de novo: nada é duplicado.
+11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
+12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
+13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.

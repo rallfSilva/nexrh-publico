@@ -25,12 +25,14 @@ class Importacao extends Model
         'estrutura_selc' => 'Planilha de estrutura de cargos (formato usado pela SELC)',
         'modelo_nexrh' => 'Modelo padrão do NexRH (02_modelo_cargos_e_vagas)',
         'modelo_servidores' => 'Modelo padrão do NexRH (03_modelo_servidores)',
+        'modelo_dependentes' => 'Modelo padrão do NexRH (04_modelo_dependentes)',
     ];
 
     /** @var array<string, string> */
     public const TIPOS = [
         'cargos' => 'Quadro de cargos',
         'servidores' => 'Servidores',
+        'dependentes' => 'Dependentes',
     ];
 
     /** @var array<string, string> */

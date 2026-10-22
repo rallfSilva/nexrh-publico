@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Models\Dependente;
+use App\Models\Documento;
 use App\Models\Servidor;
 use App\Models\User;
 use App\Models\Vaga;
 use Database\Seeders\DemoSeeder;
 use Database\Seeders\PerfisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -50,6 +53,7 @@ class InstalacaoTest extends TestCase
 
     public function test_dados_de_demonstracao_sao_ficticios_e_consistentes(): void
     {
+        Storage::fake('local');
         $this->seed(PerfisSeeder::class);
         $this->seed(DemoSeeder::class);
 
@@ -62,5 +66,10 @@ class InstalacaoTest extends TestCase
         $this->assertSame(94, Servidor::withoutGlobalScopes()->count());
         $this->assertSame('Ana Beatriz Martins', User::where('email', 'servidor.selc@nexrh.local')->first()->servidor->nome);
         $this->assertSame(0, Servidor::withoutGlobalScopes()->where('email', 'not like', '%@example.com')->count());
+
+        // Dependentes do exemplo do modelo 04 e um dossiê de demonstração com documentos em todas as situações.
+        $this->assertSame(67, Dependente::withoutGlobalScopes()->count());
+        $ana = User::where('email', 'servidor.selc@nexrh.local')->first()->servidor;
+        $this->assertEqualsCanonicalizing(['validado', 'pendente', 'recusado'], Documento::withoutGlobalScopes()->where('servidor_id', $ana->id)->distinct()->pluck('situacao')->all());
     }
 }

@@ -2,9 +2,19 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 3 (servidores). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 1, Entrega 4 (dossiê e dependentes). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 4: dossiê e dependentes
+
+- **Dossiê digital**: documentos de cada servidor organizados por categoria (identificação, escolaridade, admissão, atos funcionais, capacitação, dependentes, saúde e outros), com data, validade e situação. Mostra quantos dos 10 documentos exigidos na posse já estão validados e avisa documento vencido ou perto de vencer.
+- **Envio pelo servidor**: em **Minha ficha**, o servidor envia os próprios documentos; eles ficam "aguardando validação" até o RH validar ou recusar (com motivo, que o servidor vê). O RH acompanha tudo em **Documentos a validar**.
+- **Arquivos protegidos**: só PDF, JPG e PNG, conferidos pelo conteúdo (não pela extensão), até 10 MB. Ficam criptografados no disco, com conferência de integridade a cada abertura. Cada visualização e download fica na trilha de auditoria. Nada é apagado: o RH arquiva, com motivo.
+- **Dependentes** com os códigos de parentesco da ficha (tabela do eSocial) e as finalidades: imposto de renda, previdência e salário-família. O sistema confere CPF, um só cônjuge ativo e salário-família só para filho ou equiparado, e aponta nas pendências quem passou do limite de idade (IR até 21 anos ou 24 se universitário, salário-família até 14, previdência até 21; sem limite para pessoa com deficiência). Dependente não é apagado: é encerrado com data e motivo, e pode ser reativado.
+- **Ficha em PDF** com a seção de dependentes.
+- **Quem vê**: dossiê e dependentes só para RH, administração do órgão e o próprio servidor. Auditor e chefia não veem.
+- **Importação do modelo 04** (dependentes), com relatório por linha e exemplo **fictício** em `resources/modelos-importacao/exemplo_dependentes_ficticio.xlsx` (67 dependentes dos servidores do exemplo 03 e 5 linhas com erro de propósito).
 
 ### Entrega 3: servidores
 
@@ -73,7 +83,7 @@ O sistema fica em `http://<servidor>:8080` (mude a porta com `NEXRH_PORTA` no `.
 
 ### Para demonstração
 
-Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, um usuário por perfil o quadro de cargos importado da planilha de exemplo fictícia (168 cargos) e 94 servidores fictícios importados do exemplo do modelo 03. O usuário `servidor.selc@nexrh.local` é a servidora fictícia Ana Beatriz Martins e vê a própria ficha em **Minha ficha**. A senha de todos é `NexRH@demo2026`.
+Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, um usuário por perfil o quadro de cargos importado da planilha de exemplo fictícia (168 cargos) 94 servidores fictícios importados do exemplo do modelo 03, com 67 dependentes do exemplo do modelo 04, e um dossiê de demonstração (os arquivos são PDFs gerados com a marca "documento fictício"). O usuário `servidor.selc@nexrh.local` é a servidora fictícia Ana Beatriz Martins: vê a própria ficha em **Minha ficha**, com documentos validados, dois aguardando validação e um recusado. A senha de todos é `NexRH@demo2026`.
 
 | E-mail | Perfil |
 |---|---|
@@ -100,7 +110,7 @@ O backup copia o banco de dados e os arquivos enviados, confere tudo com soma de
 0 2 * * * cd /opt/nexrh-publico && ./scripts/backup.sh >> /var/log/nexrh-backup.log 2>&1
 ```
 
-Guarde uma cópia fora do servidor. **Guarde também a `APP_KEY` do `.env`** em local seguro e separado do backup (cofre de senhas do órgão, por exemplo): CPF, documentos e dados bancários ficam criptografados com ela, e sem a mesma chave o backup restaurado não consegue ler esses dados. Ela fica fora da pasta de backup de propósito, para que uma cópia vazada não sirva sozinha. A restauração pede que você digite `RESTAURAR` antes de substituir os dados atuais.
+Guarde uma cópia fora do servidor. **Guarde também a `APP_KEY` do `.env`** em local seguro e separado do backup (cofre de senhas do órgão, por exemplo): CPF, documentos, dados bancários e os arquivos do dossiê ficam criptografados com ela, e sem a mesma chave o backup restaurado não consegue ler esses dados. Ela fica fora da pasta de backup de propósito, para que uma cópia vazada não sirva sozinha. A restauração pede que você digite `RESTAURAR` antes de substituir os dados atuais.
 
 ## Atualização
 

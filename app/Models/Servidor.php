@@ -121,6 +121,16 @@ class Servidor extends Model
         return $this->hasMany(Declaracao::class)->orderByDesc('data_declaracao')->orderByDesc('id');
     }
 
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(Documento::class)->orderByDesc('created_at')->orderByDesc('id');
+    }
+
+    public function dependentes(): HasMany
+    {
+        return $this->hasMany(Dependente::class)->orderBy('data_nascimento')->orderBy('id');
+    }
+
     public function eventos(): HasMany
     {
         return $this->hasMany(ServidorEvento::class)->orderByDesc('data')->orderByDesc('id');
@@ -254,6 +264,58 @@ class Servidor extends Model
         }
 
         return $p;
+    }
+
+    /**
+     * Pendências do dossiê e dos dependentes. Ficam à parte porque só quem vê
+     * esses dados (RH, administração e o próprio servidor) deve recebê-las.
+     *
+     * @return list<array{titulo: string, detalhe: string}>
+     */
+    public function pendenciasDoDossie(): array
+    {
+        if (! $this->ativo()) {
+            return [];
+        }
+
+        $p = [];
+        $documentos = $this->documentos->where('situacao', '!=', 'arquivado');
+
+        if (($n = $documentos->where('situacao', 'pendente')->count()) > 0) {
+            $p[] = ['titulo' => $n === 1 ? '1 documento aguardando validação' : "{$n} documentos aguardando validação", 'detalhe' => 'Enviado(s) pelo servidor. O RH confere e valida ou recusa.'];
+        }
+        foreach ($documentos->where('situacao', 'recusado') as $d) {
+            $p[] = ['titulo' => 'Documento recusado: '.$d->titulo(), 'detalhe' => $d->motivo ? 'Motivo: '.$d->motivo : 'Envie de novo.'];
+        }
+        foreach ($documentos->where('situacao', 'validado')->filter->vencido() as $d) {
+            $p[] = ['titulo' => $d->titulo().' vencido', 'detalhe' => 'Venceu em '.$d->validade->format('d/m/Y').'. Peça a versão atual.'];
+        }
+        if (($faltam = $this->documentosDaPosseFaltando()) !== []) {
+            $p[] = ['titulo' => 'Dossiê da posse incompleto', 'detalhe' => count($faltam).' de '.count(Documento::EXIGIDOS_POSSE).' documentos faltando: '.implode(', ', array_slice($faltam, 0, 3)).(count($faltam) > 3 ? ' e outros.' : '.')];
+        }
+        foreach ($this->dependentes->filter->ativo() as $dep) {
+            foreach ($dep->alertas() as $alerta) {
+                $p[] = ['titulo' => 'Revisar dependente '.$dep->nome, 'detalhe' => $alerta];
+            }
+        }
+
+        return $p;
+    }
+
+    /**
+     * Documentos exigidos na posse que ainda não estão validados no dossiê.
+     *
+     * @return list<string> rótulos
+     */
+    public function documentosDaPosseFaltando(): array
+    {
+        $validados = $this->documentos->where('situacao', 'validado')->pluck('tipo')->all();
+        $todos = Documento::todosOsTipos();
+
+        return array_values(array_map(
+            fn ($tipo) => $todos[$tipo],
+            array_diff(array_keys(Documento::EXIGIDOS_POSSE), $validados),
+        ));
     }
 
     /** Data de ingresso no órgão: efeitos do ato de nomeação ou, na falta, o cadastro. */

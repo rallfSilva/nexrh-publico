@@ -43,3 +43,15 @@ Além dos campos que nunca entram na trilha (senha, segredos), o `Auditable` ace
 ## PDF gerado no servidor
 
 A ficha em PDF usa o dompdf (`barryvdh/laravel-dompdf`), em PHP puro, sem navegador nem serviço externo, com carregamento de arquivos remotos desligado.
+
+## Arquivos do dossiê criptografados, conferidos e nunca apagados
+
+O arquivo é cifrado com a chave da aplicação antes de ir para o disco privado (`storage/app/private/dossie`), e o SHA-256 do original é conferido a cada abertura. O tipo é verificado pela assinatura do conteúdo (finfo), não pela extensão nem pelo que o navegador informa; só PDF, JPG e PNG. Na entrega, `nosniff` impede o navegador de adivinhar outro tipo e imagens abrem com CSP `sandbox` (o PDF não, porque o leitor de PDF do Chrome não funciona em sandbox). Documento não é excluído: é arquivado com motivo, e o arquivo continua guardado.
+
+## Dossiê e dependentes sem permissão nova
+
+Usam as permissões que já existiam: `servidores.dados_pessoais` para ver e `servidores.gerenciar` junto com ela para alterar (gate `gerenciar-dossie`). Assim, auditor e chefia, que não veem dados pessoais, também não veem dossiê nem dependentes. O próprio servidor vê os dele por **Minha ficha**.
+
+## "Universitário" sai do código de parentesco
+
+A ficha tem o código 04 (filho universitário) e 07 (equiparado universitário) e, à parte, a coluna "universitário". Para os dois nunca se contradizerem, o sistema grava o código e deriva o "universitário" dele; na importação, "universitário = sim" com o código 03 vira 04. Os limites de idade não bloqueiam o cadastro: viram pendência, porque a idade muda com o tempo.

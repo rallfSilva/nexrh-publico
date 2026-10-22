@@ -36,7 +36,13 @@
                 <a href="{{ route('cargos.index') }}" class="{{ $nav('cargos.*') || $nav('vagas.*') || $nav('importacoes.*') ? 'on' : '' }}"><x-icone nome="cargos" />Cargos e vagas</a>
             @endcan
             @can('listar-servidores')
-                <a href="{{ route('servidores.index') }}" class="{{ $nav('servidores.*') || $nav('declaracoes.*') ? 'on' : '' }}"><x-icone nome="servidor" />Servidores</a>
+                <a href="{{ route('servidores.index') }}" class="{{ $nav('servidores.*') || $nav('declaracoes.*') || $nav('dependentes.*') ? 'on' : '' }}"><x-icone nome="servidor" />Servidores</a>
+            @endcan
+            @can('gerenciar-dossie')
+                @php($aValidar = \App\Models\Documento::where('situacao', 'pendente')->count())
+                <a href="{{ route('documentos.pendentes') }}" class="{{ $nav('documentos.*') }}"><x-icone nome="pasta" />Documentos a validar
+                    @if ($aValidar)<em class="cnt" aria-label="{{ $aValidar }} aguardando">{{ $aValidar }}</em>@endif
+                </a>
             @endcan
             <span class="soon"><x-icone nome="ferias" />Férias<em>Entrega 5</em></span>
 
@@ -51,8 +57,8 @@
             <a href="{{ route('seguranca') }}" class="{{ $nav('seguranca') }}"><x-icone nome="escudo" />Minha segurança</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 3<br>
-            Servidores com a ficha da SEGAD e a ficha em PDF.
+            Fase 1 · Entrega 4<br>
+            Dossiê digital e dependentes.
         </div>
     </aside>
 

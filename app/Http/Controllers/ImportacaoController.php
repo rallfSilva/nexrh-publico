@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Importacao\AnalisadorDependentes;
 use App\Importacao\AnalisadorQuadroCargos;
 use App\Importacao\AnalisadorServidores;
+use App\Importacao\AplicadorDependentes;
 use App\Importacao\AplicadorQuadroCargos;
 use App\Importacao\AplicadorServidores;
 use App\Models\Importacao;
@@ -41,7 +43,7 @@ class ImportacaoController extends Controller
         ]);
     }
 
-    public function store(Request $request, AnalisadorQuadroCargos $cargos, AnalisadorServidores $servidores): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $user = $request->user();
         $request->mergeIfMissing(['tipo' => $this->tiposPermitidos($request)[0] ?? null]);
@@ -63,7 +65,11 @@ class ImportacaoController extends Controller
         $completo = Storage::disk('local')->path($caminho);
 
         try {
-            $resultado = $tipo === 'servidores' ? $servidores->analisar($completo, $orgaoId) : $cargos->analisar($completo);
+            $resultado = match ($tipo) {
+                'servidores' => app(AnalisadorServidores::class)->analisar($completo, $orgaoId),
+                'dependentes' => app(AnalisadorDependentes::class)->analisar($completo, $orgaoId),
+                default => app(AnalisadorQuadroCargos::class)->analisar($completo),
+            };
         } catch (RuntimeException $e) {
             Storage::disk('local')->delete($caminho);
 
@@ -71,7 +77,6 @@ class ImportacaoController extends Controller
         }
 
         $bloqueios = array_filter($resultado['divergencias'], fn ($d) => $d['nivel'] === 'bloqueia');
-        $chave = $tipo === 'servidores' ? 'servidores' : 'cargos';
 
         $importacao = Importacao::create([
             'orgao_id' => $orgaoId,
@@ -84,7 +89,7 @@ class ImportacaoController extends Controller
             'situacao' => $bloqueios === [] ? 'analisada' : 'recusada',
             'resumo' => $resultado['resumo'],
             'divergencias' => $resultado['divergencias'],
-            'dados' => $bloqueios === [] ? [$chave => $resultado[$chave]] : null,
+            'dados' => $bloqueios === [] ? [$tipo => $resultado[$tipo]] : null,
         ]);
 
         Auditoria::registrar('importacao', $importacao, "Planilha \"{$importacao->arquivo_nome}\" enviada para análise (".count($resultado['divergencias']).' divergência(s))');
@@ -95,13 +100,12 @@ class ImportacaoController extends Controller
     public function show(Request $request, Importacao $importacao): View
     {
         $this->autorizar($request, $importacao);
-        $chave = $importacao->tipo === 'servidores' ? 'servidores' : 'cargos';
-        $previa = $importacao->situacao === 'analisada' ? ($importacao->dados[$chave] ?? []) : [];
+        $previa = $importacao->situacao === 'analisada' ? ($importacao->dados[$importacao->tipo] ?? []) : [];
 
         return view('importacoes.show', ['importacao' => $importacao, 'previa' => $previa]);
     }
 
-    public function aplicar(Request $request, Importacao $importacao, AplicadorQuadroCargos $cargos, AplicadorServidores $servidores): RedirectResponse
+    public function aplicar(Request $request, Importacao $importacao): RedirectResponse
     {
         $this->autorizar($request, $importacao);
 
@@ -109,8 +113,17 @@ class ImportacaoController extends Controller
             return back()->with('erro', 'Esta importação não pode mais ser aplicada.');
         }
 
+        if ($importacao->tipo === 'dependentes') {
+            $r = app(AplicadorDependentes::class)->aplicar($importacao);
+
+            return redirect()->route('servidores.index')->with('sucesso', sprintf(
+                'Dependentes importados: %d novo(s) e %d atualizado(s). Eles aparecem na aba Dependentes de cada ficha.',
+                $r['criados'], $r['atualizados'],
+            ));
+        }
+
         if ($importacao->tipo === 'servidores') {
-            $r = $servidores->aplicar($importacao);
+            $r = app(AplicadorServidores::class)->aplicar($importacao);
 
             return redirect()->route('servidores.index')->with('sucesso', sprintf(
                 'Servidores importados: %d novo(s), %d atualizado(s), %d com vaga vinculada e %d declaração(ões). O relatório continua no histórico de importações.',
@@ -118,7 +131,7 @@ class ImportacaoController extends Controller
             ));
         }
 
-        $r = $cargos->aplicar($importacao);
+        $r = app(AplicadorQuadroCargos::class)->aplicar($importacao);
 
         return redirect()->route('cargos.index', ['orgao' => $importacao->orgao_id])->with('sucesso', sprintf(
             'Quadro importado: %d cargo(s) novo(s), %d atualizado(s), %d vaga(s). O relatório de divergências continua disponível no histórico de importações.',
@@ -141,7 +154,7 @@ class ImportacaoController extends Controller
         return redirect()->route('importacoes.index')->with('sucesso', 'Importação cancelada. Nada foi alterado.');
     }
 
-    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores. */
+    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores; dependentes para quem gerencia o dossiê. */
     private function tiposPermitidos(Request $request): array
     {
         $user = $request->user();
@@ -149,6 +162,7 @@ class ImportacaoController extends Controller
         return array_values(array_filter([
             $user->can('cargos.gerenciar') ? 'cargos' : null,
             $user->can('servidores.gerenciar') ? 'servidores' : null,
+            $user->can('gerenciar-dossie') ? 'dependentes' : null,
         ]));
     }
 

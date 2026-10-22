@@ -27,6 +27,13 @@
         'seta' => '<path d="m9 18 6-6-6-6"/>',
         'voltar' => '<path d="m15 18-6-6 6-6"/>',
         'liga' => '<path d="M18.36 6.64a9 9 0 1 1-12.73 0M12 2v10"/>',
+        'arquivo' => '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
+        'imagem' => '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+        'olho' => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+        'enviar' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+        'familia' => '<circle cx="8" cy="6" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21v-3a5 5 0 0 1 10 0v3M13 21v-2a4 4 0 0 1 8 0v2"/>',
+        'arquivar' => '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
+        'fechar' => '<path d="M18 6 6 18M6 6l12 12"/>',
     ];
 @endphp
 <svg width="{{ $tamanho }}" height="{{ $tamanho }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" {{ $attributes }}>{!! $caminhos[$nome] ?? '' !!}</svg>
