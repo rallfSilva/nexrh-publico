@@ -21,6 +21,9 @@
         <nav class="nav">
             <span class="cap">Visão geral</span>
             <a href="{{ route('painel') }}" class="{{ $nav('painel') }}"><x-icone nome="painel" />Painel</a>
+            @if ($user->servidor()->exists() || $user->hasRole('servidor'))
+                <a href="{{ route('minha-ficha') }}" class="{{ $nav('minha-ficha*') }}"><x-icone nome="pasta" />Minha ficha</a>
+            @endif
 
             <span class="cap">Estrutura</span>
             @can('orgaos.gerenciar')
@@ -32,7 +35,9 @@
             @can('cargos.ver')
                 <a href="{{ route('cargos.index') }}" class="{{ $nav('cargos.*') || $nav('vagas.*') || $nav('importacoes.*') ? 'on' : '' }}"><x-icone nome="cargos" />Cargos e vagas</a>
             @endcan
-            <span class="soon"><x-icone nome="servidor" />Servidores<em>Entrega 3</em></span>
+            @can('listar-servidores')
+                <a href="{{ route('servidores.index') }}" class="{{ $nav('servidores.*') || $nav('declaracoes.*') ? 'on' : '' }}"><x-icone nome="servidor" />Servidores</a>
+            @endcan
             <span class="soon"><x-icone nome="ferias" />Férias<em>Entrega 5</em></span>
 
             <span class="cap">Administração</span>
@@ -46,8 +51,8 @@
             <a href="{{ route('seguranca') }}" class="{{ $nav('seguranca') }}"><x-icone nome="escudo" />Minha segurança</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 2<br>
-            Cargos e vagas, com importação da planilha.
+            Fase 1 · Entrega 3<br>
+            Servidores com a ficha da SEGAD e a ficha em PDF.
         </div>
     </aside>
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['orgao_id', 'cargo_id', 'numero', 'base_legal', 'situacao', 'orgao_remanejamento', 'ocupante_nome', 'ocupante_cpf', 'ato_numero', 'ato_data', 'efeito_data', 'observacao'])]
 #[Hidden(['ocupante_cpf'])]
@@ -45,6 +46,12 @@ class Vaga extends Model
     public function cargo(): BelongsTo
     {
         return $this->belongsTo(Cargo::class);
+    }
+
+    /** Servidor cadastrado que ocupa a vaga (Entrega 3). */
+    public function servidor(): HasOne
+    {
+        return $this->hasOne(Servidor::class);
     }
 
     public function cpfMascarado(): ?string

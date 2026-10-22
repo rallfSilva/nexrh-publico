@@ -72,6 +72,11 @@ trait Auditable
     {
         $valores = array_diff_key($valores, array_flip([...static::$camposNuncaAuditados, ...$this->camposSensiveisAuditoria()]));
 
+        // Campos protegidos: a trilha registra que mudaram, mas nunca o valor.
+        foreach (array_intersect_key($valores, array_flip($this->camposProtegidosAuditoria())) as $campo => $valor) {
+            $valores[$campo] = $valor === null ? null : '[protegido]';
+        }
+
         foreach ($valores as $campo => $valor) {
             if ($valor instanceof \DateTimeInterface) {
                 $valores[$campo] = $valor->format('Y-m-d H:i:s');
@@ -87,6 +92,17 @@ trait Auditable
      * @return list<string>
      */
     protected function camposSensiveisAuditoria(): array
+    {
+        return [];
+    }
+
+    /**
+     * Campos que aparecem na trilha só como "[protegido]": dá para saber que foram
+     * alterados, sem expor o conteúdo (documentos, dados bancários, dados sensíveis da LGPD).
+     *
+     * @return list<string>
+     */
+    protected function camposProtegidosAuditoria(): array
     {
         return [];
     }

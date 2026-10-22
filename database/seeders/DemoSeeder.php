@@ -3,10 +3,13 @@
 namespace Database\Seeders;
 
 use App\Importacao\AnalisadorQuadroCargos;
+use App\Importacao\AnalisadorServidores;
 use App\Importacao\AplicadorQuadroCargos;
+use App\Importacao\AplicadorServidores;
 use App\Models\Cargo;
 use App\Models\Importacao;
 use App\Models\Orgao;
+use App\Models\Servidor;
 use App\Models\Unidade;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -75,6 +78,10 @@ class DemoSeeder extends Seeder
 
         $this->quadroDeCargos($selc);
 
+        // A servidora de demonstração tem acesso ao sistema: o CPF (fictício) liga o usuário à ficha.
+        $criados['servidor.selc@nexrh.local']->update(['cpf' => '52998224725']);
+        $this->servidores($selc);
+
         $outroGab = $this->unidade($outro, 'GAB', 'Gabinete', 'gabinete', null, null, 1);
         $this->unidade($outro, 'DAF', 'Diretoria Administrativa e Financeira', 'diretoria', $outroGab, null, 2);
     }
@@ -106,6 +113,35 @@ class DemoSeeder extends Seeder
         ]);
 
         (new AplicadorQuadroCargos)->aplicar($importacao);
+    }
+
+    /** Importa a planilha modelo 03 com servidores fictícios, como faria o RH. */
+    private function servidores(Orgao $orgao): void
+    {
+        if (Servidor::withoutGlobalScopes()->where('orgao_id', $orgao->id)->exists()) {
+            return;
+        }
+
+        $origem = resource_path('modelos-importacao/exemplo_servidores_ficticio.xlsx');
+        $caminho = 'importacoes/'.$orgao->id.'/demonstracao-servidores.xlsx';
+        Storage::disk('local')->put($caminho, file_get_contents($origem));
+
+        $resultado = (new AnalisadorServidores)->analisar($origem, $orgao->id);
+
+        $importacao = Importacao::create([
+            'orgao_id' => $orgao->id,
+            'tipo' => 'servidores',
+            'formato' => $resultado['formato'],
+            'arquivo_nome' => 'servidores-ficticios.xlsx',
+            'arquivo_caminho' => $caminho,
+            'arquivo_hash' => hash_file('sha256', $origem),
+            'situacao' => 'analisada',
+            'resumo' => $resultado['resumo'],
+            'divergencias' => $resultado['divergencias'],
+            'dados' => ['servidores' => $resultado['servidores']],
+        ]);
+
+        app(AplicadorServidores::class)->aplicar($importacao);
     }
 
     private function unidade(Orgao $orgao, string $sigla, string $nome, string $tipo, ?Unidade $pai, ?User $chefe, int $minimo): Unidade

@@ -24,6 +24,13 @@ class Importacao extends Model
     public const FORMATOS = [
         'estrutura_selc' => 'Planilha de estrutura de cargos (formato usado pela SELC)',
         'modelo_nexrh' => 'Modelo padrão do NexRH (02_modelo_cargos_e_vagas)',
+        'modelo_servidores' => 'Modelo padrão do NexRH (03_modelo_servidores)',
+    ];
+
+    /** @var array<string, string> */
+    public const TIPOS = [
+        'cargos' => 'Quadro de cargos',
+        'servidores' => 'Servidores',
     ];
 
     /** @var array<string, string> */

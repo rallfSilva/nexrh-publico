@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Servidor;
 use App\Models\User;
 use App\Models\Vaga;
 use Database\Seeders\DemoSeeder;
@@ -55,6 +56,11 @@ class InstalacaoTest extends TestCase
         $this->assertSame(8, User::count());
         $this->assertSame(168, Vaga::withoutGlobalScopes()->count());
         $this->assertTrue(User::where('email', 'admin@nexrh.local')->first()->ehAdministradorGeral());
-        $this->assertSame(0, User::whereNotNull('cpf')->count());
+        // Só a servidora de demonstração tem CPF, e é o CPF de teste usado em exemplos (fictício).
+        $this->assertSame(['52998224725'], User::whereNotNull('cpf')->pluck('cpf')->all());
+
+        $this->assertSame(94, Servidor::withoutGlobalScopes()->count());
+        $this->assertSame('Ana Beatriz Martins', User::where('email', 'servidor.selc@nexrh.local')->first()->servidor->nome);
+        $this->assertSame(0, Servidor::withoutGlobalScopes()->where('email', 'not like', '%@example.com')->count());
     }
 }

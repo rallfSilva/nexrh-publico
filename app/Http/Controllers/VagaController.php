@@ -13,11 +13,21 @@ class VagaController extends Controller
 {
     public function edit(Vaga $vaga): View
     {
-        return view('vagas.form', ['vaga' => $vaga->load('cargo')]);
+        return view('vagas.form', ['vaga' => $vaga->load(['cargo', 'servidor'])]);
     }
 
     public function update(Request $request, Vaga $vaga): RedirectResponse
     {
+        // Vaga de servidor cadastrado: ocupante e ato vêm da ficha dele.
+        if ($vaga->servidor()->exists()) {
+            $vaga->update($request->validate([
+                'base_legal' => ['nullable', 'string', 'max:255'],
+                'observacao' => ['nullable', 'string', 'max:2000'],
+            ]));
+
+            return redirect()->route('cargos.show', $vaga->cargo_id)->with('sucesso', "Vaga nº {$vaga->numero} atualizada.");
+        }
+
         $situacao = $request->input('situacao');
         $ocupada = $situacao === 'ocupada';
         $fora = in_array($situacao, Vaga::FORA_DO_ORGAO, true);

@@ -31,6 +31,29 @@ class Cpf
         return true;
     }
 
+    /**
+     * Impressão digital do CPF (HMAC com a chave da aplicação): permite buscar e
+     * impedir cadastro em dobro sem guardar o CPF aberto.
+     */
+    public static function hash(?string $cpf): string
+    {
+        $chave = (string) config('app.key');
+
+        if (str_starts_with($chave, 'base64:')) {
+            $chave = base64_decode(substr($chave, 7));
+        }
+
+        return hash_hmac('sha256', self::somenteDigitos($cpf), $chave);
+    }
+
+    /** Formato da ficha: 123.456.789-09 */
+    public static function formatar(?string $cpf): ?string
+    {
+        $d = self::somenteDigitos($cpf);
+
+        return strlen($d) === 11 ? substr($d, 0, 3).'.'.substr($d, 3, 3).'.'.substr($d, 6, 3).'-'.substr($d, 9, 2) : ($cpf ?: null);
+    }
+
     /** Exibição segura: ***.456.789-** */
     public static function mascarar(?string $cpf): ?string
     {

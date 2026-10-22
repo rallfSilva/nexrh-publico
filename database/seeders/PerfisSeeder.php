@@ -24,17 +24,21 @@ class PerfisSeeder extends Seeder
         'auditoria.ver' => 'Consultar a trilha de auditoria',
         'cargos.ver' => 'Ver o quadro de cargos e vagas',
         'cargos.gerenciar' => 'Cadastrar cargos, editar vagas e importar planilhas',
+        'servidores.ver' => 'Ver todos os servidores do órgão',
+        'servidores.ver_equipe' => 'Ver os servidores da própria equipe (unidades que chefia)',
+        'servidores.gerenciar' => 'Cadastrar e alterar servidores, declarações e desligamentos',
+        'servidores.dados_pessoais' => 'Ver CPF completo, documentos, dados bancários e dados sensíveis, e gerar a ficha em PDF',
         'painel.ver' => 'Ver o painel',
     ];
 
     /** @var array<string, list<string>> */
     public const PERFIS = [
         'administrador-geral' => ['*'],
-        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar'],
-        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar'],
-        'chefia' => ['unidades.ver', 'painel.ver'],
+        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais'],
+        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais'],
+        'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe'],
         'servidor' => ['painel.ver'],
-        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver'],
+        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'servidores.ver'],
     ];
 
     public function run(): void

@@ -2,9 +2,21 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 2 (cargos e vagas). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 1, Entrega 3 (servidores). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 3: servidores
+
+- **Ficha cadastral completa**, com todos os campos da ficha da SEGAD: nomeação, dados pessoais, documentos, formação e vínculos, endereço, contato e dados bancários. O cadastro é feito em 5 etapas, cada uma conferida antes de seguir, e os campos condicionais (reservista, CNH, deficiência, vínculo efetivo) só aparecem quando se aplicam.
+- **Ligação com o quadro de cargos**: o servidor ocupa uma vaga do cargo; a vaga passa a mostrar nome, CPF e ato dele. Trocar de vaga ou registrar o desligamento libera a anterior. A readmissão volta a ocupar uma vaga.
+- **Declarações** de grau de parentesco, acumulação de cargos e bens (por ano), com histórico e pendências na ficha (sem declaração, bens do ano em falta, CNH vencida, reservista).
+- **Linha do tempo** do servidor: ingresso, nomeação, mudança de lotação, desligamento e readmissão.
+- **Ficha em PDF** no padrão da SEGAD, pronta para assinar, e **Minha ficha** para o próprio servidor consultar e baixar a dele.
+- **Quem vê o quê**: RH e administrador do órgão veem tudo; o auditor vê a ficha sem CPF completo, documentos nem dados bancários; a chefia vê só a equipe das unidades que chefia; o servidor vê só a própria ficha.
+- **Proteção dos dados pessoais**: CPF, documentos e dados bancários ficam criptografados no banco. A trilha de auditoria registra que esses campos mudaram, sem guardar o valor, e registra cada abertura de ficha e cada download do PDF.
+- **Importação do modelo 03** (abas Servidores, Parentesco, Acumulação e Bens): linhas com erro ficam de fora e aparecem no relatório; as demais entram. Reimportar atualiza quem já existe (mesmo CPF), sem duplicar servidores nem declarações.
+- Planilha de exemplo **fictícia** em `resources/modelos-importacao/exemplo_servidores_ficticio.xlsx`, com 94 servidores que ocupam as vagas do quadro fictício e 5 linhas com erro de propósito.
 
 ### Entrega 2: cargos e vagas
 
@@ -61,7 +73,7 @@ O sistema fica em `http://<servidor>:8080` (mude a porta com `NEXRH_PORTA` no `.
 
 ### Para demonstração
 
-Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, um usuário por perfil e o quadro de cargos importado da planilha de exemplo fictícia (168 cargos). A senha de todos é `NexRH@demo2026`.
+Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, um usuário por perfil o quadro de cargos importado da planilha de exemplo fictícia (168 cargos) e 94 servidores fictícios importados do exemplo do modelo 03. O usuário `servidor.selc@nexrh.local` é a servidora fictícia Ana Beatriz Martins e vê a própria ficha em **Minha ficha**. A senha de todos é `NexRH@demo2026`.
 
 | E-mail | Perfil |
 |---|---|
@@ -88,7 +100,7 @@ O backup copia o banco de dados e os arquivos enviados, confere tudo com soma de
 0 2 * * * cd /opt/nexrh-publico && ./scripts/backup.sh >> /var/log/nexrh-backup.log 2>&1
 ```
 
-Guarde uma cópia fora do servidor. A restauração pede que você digite `RESTAURAR` antes de substituir os dados atuais.
+Guarde uma cópia fora do servidor. **Guarde também a `APP_KEY` do `.env`** em local seguro e separado do backup (cofre de senhas do órgão, por exemplo): CPF, documentos e dados bancários ficam criptografados com ela, e sem a mesma chave o backup restaurado não consegue ler esses dados. Ela fica fora da pasta de backup de propósito, para que uma cópia vazada não sirva sozinha. A restauração pede que você digite `RESTAURAR` antes de substituir os dados atuais.
 
 ## Atualização
 
