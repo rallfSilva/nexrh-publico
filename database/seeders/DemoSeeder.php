@@ -2,10 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Importacao\AnalisadorQuadroCargos;
+use App\Importacao\AplicadorQuadroCargos;
+use App\Models\Cargo;
+use App\Models\Importacao;
 use App\Models\Orgao;
 use App\Models\Unidade;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Dados de demonstração, todos fictícios. Nunca roda em produção.
@@ -68,8 +73,39 @@ class DemoSeeder extends Seeder
         $this->unidade($selc, 'DRH', 'Departamento de Recursos Humanos', 'departamento', $gab, null, 2);
         $this->unidade($selc, 'DAC', 'Departamento de Acompanhamento de Contratos', 'departamento', $gab, null, 2);
 
+        $this->quadroDeCargos($selc);
+
         $outroGab = $this->unidade($outro, 'GAB', 'Gabinete', 'gabinete', null, null, 1);
         $this->unidade($outro, 'DAF', 'Diretoria Administrativa e Financeira', 'diretoria', $outroGab, null, 2);
+    }
+
+    /** Importa a cópia fictícia da planilha de estrutura de cargos, como faria o RH. */
+    private function quadroDeCargos(Orgao $orgao): void
+    {
+        if (Cargo::withoutGlobalScopes()->where('orgao_id', $orgao->id)->exists()) {
+            return;
+        }
+
+        $origem = resource_path('modelos-importacao/exemplo_estrutura_cargos_ficticia.xlsx');
+        $caminho = 'importacoes/'.$orgao->id.'/demonstracao.xlsx';
+        Storage::disk('local')->put($caminho, file_get_contents($origem));
+
+        $resultado = (new AnalisadorQuadroCargos)->analisar($origem);
+
+        $importacao = Importacao::create([
+            'orgao_id' => $orgao->id,
+            'tipo' => 'cargos',
+            'formato' => $resultado['formato'],
+            'arquivo_nome' => 'estrutura-de-cargos-ficticia.xlsx',
+            'arquivo_caminho' => $caminho,
+            'arquivo_hash' => hash_file('sha256', $origem),
+            'situacao' => 'analisada',
+            'resumo' => $resultado['resumo'],
+            'divergencias' => $resultado['divergencias'],
+            'dados' => ['cargos' => $resultado['cargos']],
+        ]);
+
+        (new AplicadorQuadroCargos)->aplicar($importacao);
     }
 
     private function unidade(Orgao $orgao, string $sigla, string $nome, string $tipo, ?Unidade $pai, ?User $chefe, int $minimo): Unidade

@@ -12,5 +12,6 @@ return [
         '04_modelo_dependentes.xlsx' => ['Dependentes', 'Dependentes com parentesco e finalidade (IR, previdência, salário-família).'],
         '05_modelo_ferias.xlsx' => ['Férias', 'Períodos aquisitivos e programação de férias já marcadas.'],
         '06_modelo_afastamentos.xlsx' => ['Afastamentos', 'Licenças e afastamentos com tipo, período e fundamento.'],
+        'exemplo_estrutura_cargos_ficticia.xlsx' => ['Exemplo: estrutura de cargos (fictícia)', 'Cópia da planilha de estrutura de cargos no formato usado pela SELC, com nomes e CPFs inventados. Serve para testar a importação.'],
     ],
 ];

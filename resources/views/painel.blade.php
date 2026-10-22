@@ -32,6 +32,13 @@
             <span class="val">{{ $totais['usuarios'] }}</span>
             <span class="foot">{{ $totais['acessosHoje'] }} {{ $totais['acessosHoje'] === 1 ? 'acessou' : 'acessaram' }} hoje</span>
         </div>
+        @if ($cargos)
+            <a href="{{ route('cargos.index', ['com_vagas' => 1]) }}" class="card kpi" style="text-decoration:none;color:inherit">
+                <span class="lbl"><span class="chip c-teal"><x-icone nome="cargos" /></span>Cargos vagos</span>
+                <span class="val">{{ $cargos['vagas'] }}</span>
+                <span class="foot">{{ $cargos['ocupadas'] }} ocupados no quadro</span>
+            </a>
+        @endif
         <div class="card kpi">
             <span class="lbl"><span class="chip {{ $totais['semDoisFatores'] ? 'c-warn' : 'c-teal' }}"><x-icone nome="escudo" /></span>Sem verificação em 2 etapas</span>
             <span class="val">{{ $totais['semDoisFatores'] }}</span>
@@ -83,7 +90,6 @@
                 <h2>Próximas entregas</h2>
                 <p class="hint">O que chega ao sistema nas próximas etapas da Fase 1.</p>
                 <div class="list">
-                    <div class="li"><span class="chip c-navy"><x-icone nome="cargos" /></span><div>Cargos e vagas<div class="meta">Quadro com importação da planilha atual</div></div></div>
                     <div class="li"><span class="chip c-navy"><x-icone nome="servidor" /></span><div>Servidores<div class="meta">Ficha cadastral completa</div></div></div>
                     <div class="li"><span class="chip c-navy"><x-icone nome="ferias" /></span><div>Férias<div class="meta">Planejamento sem conflito entre colegas</div></div></div>
                 </div>

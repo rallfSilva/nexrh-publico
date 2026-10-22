@@ -2,9 +2,19 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 1 (base do sistema). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 1, Entrega 2 (cargos e vagas). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
-## O que já funciona (Entrega 1)
+## O que já funciona
+
+### Entrega 2: cargos e vagas
+
+- **Quadro de cargos**: cargos com símbolo, natureza (comissão, função gratificada, subsídio ou efetivo), remuneração e base legal; cada vaga numerada com situação (ocupada, vaga, remanejada ou devolvida), ocupante, ato de nomeação e órgão de destino.
+- **Totais sempre conferidos**: total, remanejados, disponíveis, ocupados e vagos são contados vaga a vaga, nunca digitados.
+- **Importação da planilha de estrutura de cargos** (formato usado pela SELC ou modelo NexRH): o sistema analisa, mostra a prévia e o **relatório de divergências** (números do cabeçalho que não fecham, resumo que não confere, CPF inválido, numeração repetida ou com falhas), e só grava depois da confirmação. Pode ser impresso ou salvo em PDF.
+- **Proteção do CPF**: guardado criptografado no banco, mostrado sempre mascarado e fora da trilha de auditoria.
+- Planilha de exemplo **fictícia** em `resources/modelos-importacao/exemplo_estrutura_cargos_ficticia.xlsx`, com a mesma estrutura e as mesmas inconsistências da planilha de junho/2026.
+
+### Entrega 1: base
 
 - **Entrada segura**: e-mail e senha, "esqueci a senha" por e-mail, verificação em duas etapas (aplicativo autenticador) obrigatória para administradores, limite de 5 tentativas por minuto, bloqueio de usuário ou órgão desativado.
 - **Perfis de acesso**: administrador geral, administrador do órgão, RH, chefia, servidor e auditor.
@@ -51,7 +61,7 @@ O sistema fica em `http://<servidor>:8080` (mude a porta com `NEXRH_PORTA` no `.
 
 ### Para demonstração
 
-Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, e um usuário por perfil. A senha de todos é `NexRH@demo2026`.
+Com `NEXRH_DEMO=true` no `.env` (e `APP_ENV` diferente de `production`), o sistema cria dados **fictícios**: o órgão SELC com GAB, ASJUR, COAM, DTI, DRH e DAC, um segundo órgão para mostrar o isolamento, um usuário por perfil e o quadro de cargos importado da planilha de exemplo fictícia (168 cargos). A senha de todos é `NexRH@demo2026`.
 
 | E-mail | Perfil |
 |---|---|

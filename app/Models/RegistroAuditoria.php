@@ -33,6 +33,7 @@ class RegistroAuditoria extends Model
         'senha' => 'Senha',
         'seguranca' => 'Verificação em duas etapas',
         'download' => 'Download',
+        'importacao' => 'Importação de planilha',
     ];
 
     protected static function booted(): void
