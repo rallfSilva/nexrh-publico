@@ -15,13 +15,35 @@ trait Auditable
         'password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_confirmed_at', 'ultimo_acesso_em', 'updated_at', 'created_at',
     ];
 
+    /** Desliga o registro automático (ex.: importação em lote, que grava um único registro de resumo). */
+    protected static bool $auditoriaPausada = false;
+
+    public static function semAuditoria(callable $callback): mixed
+    {
+        $anterior = static::$auditoriaPausada;
+        static::$auditoriaPausada = true;
+
+        try {
+            return $callback();
+        } finally {
+            static::$auditoriaPausada = $anterior;
+        }
+    }
+
     public static function bootAuditable(): void
     {
         static::created(function ($model) {
+            if (static::$auditoriaPausada) {
+                return;
+            }
             Auditoria::registrar('criado', $model, $model->rotuloAuditoria().' criad'.$model->generoAuditoria(), null, $model->valoresAuditaveis($model->getAttributes()));
         });
 
         static::updated(function ($model) {
+            if (static::$auditoriaPausada) {
+                return;
+            }
+
             $novos = $model->valoresAuditaveis($model->getChanges());
 
             if ($novos === []) {
@@ -29,12 +51,15 @@ trait Auditable
             }
 
             $antigos = array_intersect_key($model->valoresAuditaveis($model->getOriginal()), $novos);
-            $alterados = array_keys(array_diff_key($model->getChanges(), array_flip(static::$camposNuncaAuditados)));
+            $alterados = array_keys($novos);
 
             Auditoria::registrar('alterado', $model, $model->rotuloAuditoria().' alterad'.$model->generoAuditoria().' ('.implode(', ', $alterados).')', $antigos, $novos);
         });
 
         static::deleted(function ($model) {
+            if (static::$auditoriaPausada) {
+                return;
+            }
             Auditoria::registrar('excluido', $model, $model->rotuloAuditoria().' excluíd'.$model->generoAuditoria(), $model->valoresAuditaveis($model->getAttributes()), null);
         });
     }
@@ -45,7 +70,7 @@ trait Auditable
      */
     protected function valoresAuditaveis(array $valores): array
     {
-        $valores = array_diff_key($valores, array_flip(static::$camposNuncaAuditados));
+        $valores = array_diff_key($valores, array_flip([...static::$camposNuncaAuditados, ...$this->camposSensiveisAuditoria()]));
 
         foreach ($valores as $campo => $valor) {
             if ($valor instanceof \DateTimeInterface) {
@@ -54,6 +79,16 @@ trait Auditable
         }
 
         return $valores;
+    }
+
+    /**
+     * Campos do modelo que nunca vão para a trilha (além de senhas e tokens).
+     *
+     * @return list<string>
+     */
+    protected function camposSensiveisAuditoria(): array
+    {
+        return [];
     }
 
     /** Terminação de gênero usada na descrição: "o" (criado) ou "a" (criada). */

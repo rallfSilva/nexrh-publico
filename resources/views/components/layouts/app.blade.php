@@ -29,7 +29,9 @@
             @can('unidades.ver')
                 <a href="{{ route('unidades.index') }}" class="{{ $nav('unidades.*') }}"><x-icone nome="organograma" />Unidades e organograma</a>
             @endcan
-            <span class="soon"><x-icone nome="cargos" />Cargos e vagas<em>Entrega 2</em></span>
+            @can('cargos.ver')
+                <a href="{{ route('cargos.index') }}" class="{{ $nav('cargos.*') || $nav('vagas.*') || $nav('importacoes.*') ? 'on' : '' }}"><x-icone nome="cargos" />Cargos e vagas</a>
+            @endcan
             <span class="soon"><x-icone nome="servidor" />Servidores<em>Entrega 3</em></span>
             <span class="soon"><x-icone nome="ferias" />Férias<em>Entrega 5</em></span>
 
@@ -44,8 +46,8 @@
             <a href="{{ route('seguranca') }}" class="{{ $nav('seguranca') }}"><x-icone nome="escudo" />Minha segurança</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 1<br>
-            Base do sistema: acesso, estrutura e auditoria.
+            Fase 1 · Entrega 2<br>
+            Cargos e vagas, com importação da planilha.
         </div>
     </aside>
 

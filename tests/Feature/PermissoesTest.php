@@ -32,6 +32,8 @@ class PermissoesTest extends TestCase
             'servidor não vê auditoria' => ['servidor', '/auditoria', 403],
             'chefia vê unidades' => ['chefia', '/unidades', 200],
             'chefia não cria unidade' => ['chefia', '/unidades/create', 403],
+            'rh importa cargos' => ['rh', '/importacoes/nova', 200],
+            'auditor não importa cargos' => ['auditor', '/importacoes/nova', 403],
             'rh vê usuários' => ['rh', '/usuarios', 200],
             'rh não cria usuário' => ['rh', '/usuarios/create', 403],
             'rh não vê auditoria' => ['rh', '/auditoria', 403],

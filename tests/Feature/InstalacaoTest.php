@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Models\Vaga;
 use Database\Seeders\DemoSeeder;
 use Database\Seeders\PerfisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,6 +53,7 @@ class InstalacaoTest extends TestCase
         $this->seed(DemoSeeder::class);
 
         $this->assertSame(8, User::count());
+        $this->assertSame(168, Vaga::withoutGlobalScopes()->count());
         $this->assertTrue(User::where('email', 'admin@nexrh.local')->first()->ehAdministradorGeral());
         $this->assertSame(0, User::whereNotNull('cpf')->count());
     }

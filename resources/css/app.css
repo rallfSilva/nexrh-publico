@@ -157,6 +157,16 @@
     .vazio { text-align: center; padding: 40px 24px; color: var(--color-texto2); }
     .vazio b { display: block; color: var(--color-tinta); font-size: 16px; margin-bottom: 6px; }
 
+    .barra { height: 10px; border-radius: 99px; background: #EAF4FB; overflow: hidden; }
+    .barra span { display: block; height: 100%; border-radius: 99px; background: var(--color-azul); }
+
+    @media print {
+        .side, .top, .nao-imprimir { display: none !important; }
+        .content { padding: 0; max-width: none; }
+        .card { box-shadow: none; break-inside: avoid; }
+        body { background: #fff; }
+    }
+
     @media (max-width: 960px) {
         .auth { grid-template-columns: minmax(0, 1fr); }
         .auth-hero { padding: 32px 24px; }

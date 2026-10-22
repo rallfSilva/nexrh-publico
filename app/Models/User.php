@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Support\Cpf;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -93,13 +94,7 @@ class User extends Authenticatable
     /** CPF com máscara para exibição: ***.456.789-** */
     public function cpfMascarado(): ?string
     {
-        if (! $this->cpf) {
-            return null;
-        }
-
-        $d = preg_replace('/\D/', '', $this->cpf);
-
-        return strlen($d) === 11 ? '***.'.substr($d, 3, 3).'.'.substr($d, 6, 3).'-**' : '***';
+        return Cpf::mascarar($this->cpf);
     }
 
     protected function rotuloAuditoria(): string

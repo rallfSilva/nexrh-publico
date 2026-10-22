@@ -22,17 +22,19 @@ class PerfisSeeder extends Seeder
         'usuarios.ver' => 'Ver os usuários do órgão',
         'usuarios.gerenciar' => 'Cadastrar usuários e definir perfis',
         'auditoria.ver' => 'Consultar a trilha de auditoria',
+        'cargos.ver' => 'Ver o quadro de cargos e vagas',
+        'cargos.gerenciar' => 'Cadastrar cargos, editar vagas e importar planilhas',
         'painel.ver' => 'Ver o painel',
     ];
 
     /** @var array<string, list<string>> */
     public const PERFIS = [
         'administrador-geral' => ['*'],
-        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver'],
-        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver'],
+        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar'],
+        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar'],
         'chefia' => ['unidades.ver', 'painel.ver'],
         'servidor' => ['painel.ver'],
-        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver'],
+        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver'],
     ];
 
     public function run(): void
