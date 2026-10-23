@@ -9,12 +9,15 @@ use App\Http\Controllers\DeclaracaoController;
 use App\Http\Controllers\DependenteController;
 use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\FeriasController;
+use App\Http\Controllers\FrequenciaController;
 use App\Http\Controllers\ImportacaoController;
+use App\Http\Controllers\MeuPontoController;
 use App\Http\Controllers\MinhaFichaController;
 use App\Http\Controllers\ModeloImportacaoController;
 use App\Http\Controllers\OrgaoController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\RegraFeriasController;
+use App\Http\Controllers\RegraFrequenciaController;
 use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SegurancaController;
 use App\Http\Controllers\ServidorController;
@@ -140,6 +143,24 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         Route::get('/minha-ficha/ferias/sugestoes', [MinhaFichaController::class, 'sugestoesFerias'])->middleware('throttle:60,1')->name('minha-ficha.ferias.sugestoes');
         Route::post('/minha-ficha/ferias/{ferias}/desistir', [MinhaFichaController::class, 'desistirFerias'])->whereNumber('ferias')->name('minha-ficha.ferias.desistir');
 
+        // Frequência: o servidor registra o próprio ponto; RH, auditoria e chefia (equipe) veem o espelho; o RH corrige.
+        Route::get('/meu-ponto', [MeuPontoController::class, 'show'])->name('meu-ponto');
+        Route::post('/meu-ponto', [MeuPontoController::class, 'registrar'])->middleware('throttle:6,1')->name('meu-ponto.registrar');
+        Route::middleware('can:ver-frequencia')->group(function () {
+            Route::get('/frequencia', [FrequenciaController::class, 'index'])->name('frequencia.index');
+            Route::get('/servidores/{servidor}/frequencia', [FrequenciaController::class, 'espelho'])->whereNumber('servidor')->name('frequencia.espelho');
+        });
+        Route::middleware('can:frequencia.gerenciar')->whereNumber(['servidor', 'registro', 'feriado'])->group(function () {
+            Route::get('/frequencia/regras', [RegraFrequenciaController::class, 'edit'])->name('frequencia.regras');
+            Route::put('/frequencia/regras', [RegraFrequenciaController::class, 'update'])->name('frequencia.regras.update');
+            Route::post('/frequencia/feriados', [RegraFrequenciaController::class, 'incluirFeriado'])->name('frequencia.feriados.store');
+            Route::post('/frequencia/feriados/sugeridos', [RegraFrequenciaController::class, 'sugerirFeriados'])->name('frequencia.feriados.sugeridos');
+            Route::delete('/frequencia/feriados/{feriado}', [RegraFrequenciaController::class, 'removerFeriado'])->name('frequencia.feriados.destroy');
+            Route::post('/servidores/{servidor}/frequencia/registros', [FrequenciaController::class, 'incluir'])->name('frequencia.incluir');
+            Route::post('/servidores/{servidor}/frequencia/registros/{registro}/anular', [FrequenciaController::class, 'anular'])->name('frequencia.anular');
+            Route::post('/servidores/{servidor}/frequencia/jornada', [FrequenciaController::class, 'jornada'])->name('frequencia.jornada');
+        });
+
         Route::middleware('can:ver-relatorios')->where(['chave' => '[a-z\-]+'])->group(function () {
             Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
             Route::get('/relatorios/{chave}', [RelatorioController::class, 'show'])->name('relatorios.show');
@@ -159,7 +180,7 @@ Route::middleware(['auth', 'ativo'])->group(function () {
 
         Route::get('/modelos-importacao', [ModeloImportacaoController::class, 'index'])->name('modelos.index');
         Route::get('/modelos-importacao/{arquivo}', [ModeloImportacaoController::class, 'baixar'])
-            ->where('arquivo', '[A-Za-z0-9_\-]+\.xlsx')
+            ->where('arquivo', '[A-Za-z0-9_\-]+\.(xlsx|txt)')
             ->name('modelos.baixar');
     });
 });

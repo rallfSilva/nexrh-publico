@@ -98,7 +98,16 @@ docker compose exec app php artisan nexrh:chave-api SELC "Ponto eletrônico" --e
 
 A última linha é a chave, que não aparece de novo. Cada chamada leva o cabeçalho `Authorization: Bearer nxr_...`. As consultas e os filtros estão no manual (menu **Ajuda › API de consulta**). A API é só leitura, vê um órgão só, devolve o CPF mascarado e não devolve documentos, endereço, contato, dados bancários nem o tipo de licença. O limite é de 60 consultas por minuto por chave.
 
-## 7. Problemas comuns
+## 7. Frequência: redes do órgão e relógio de ponto
+
+**Redes.** O servidor só registra o ponto de IPs das redes cadastradas em **Frequência › Regras e feriados** (formato CIDR, separadas por vírgula, ex.: `10.20.0.0/16, 10.21.4.0/24`). A tela mostra o IP de quem está acessando, o que ajuda a conferir.
+
+- Com o Docker Desktop no Windows, o sistema pode ver todos os acessos vindos da rede com o IP interno do Docker (ex.: `172.17.0.1` ou `192.168.65.1`). Nesse caso a restrição por rede não distingue as sedes. Para publicar o sistema na rede do órgão, use um proxy reverso (IIS, nginx) que repasse o IP real no cabeçalho `X-Forwarded-For` e defina `TRUSTED_PROXIES` no `.env` com o IP do proxy.
+- Se o ponto for só pelo relógio, o RH pode desmarcar "Só aceitar o registro de dentro da rede do órgão".
+
+**Relógio de ponto.** Exporte do relógio (ou do software dele) o **AFD** do período, em texto, e envie em **Frequência › Importar relógio de ponto**. O CPF (Portaria 671) ou o PIS (Portaria 1.510) precisa estar na ficha do servidor. Enviar o mesmo arquivo de novo não duplica marcações. Confira a data e a hora do relógio: marcações no futuro bloqueiam a importação.
+
+## 8. Problemas comuns
 
 | Sintoma | O que fazer |
 |---|---|
@@ -107,3 +116,4 @@ A última linha é a chave, que não aparece de novo. Cada chamada leva o cabeç
 | Links de senha não chegam | Confira `MAIL_*` no `.env` e `docker compose logs fila` |
 | Dados criptografados aparecem com erro depois de restaurar | A `APP_KEY` do `.env` não é a mesma da época da cópia |
 | Restaurar diz que a cópia está corrompida | A soma de verificação não confere: use outra cópia |
+| O ponto diz "fora da rede do órgão" | Compare o IP mostrado em **Regras e feriados** com as redes cadastradas (veja a seção 7) |

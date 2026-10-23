@@ -2,9 +2,20 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 6 (painel, relatórios, API de consulta e manual). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 2, Entrega 7 (frequência: jornada e registro do ponto). A Fase 1 (entregas 1 a 6) está concluída. Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 7: frequência, jornada e registro do ponto
+
+- **Meu ponto**: o servidor registra entrada e saída com um clique. Vale a hora do servidor do sistema, nunca a do computador de quem registra, e o registro só funciona de dentro das **redes do órgão** (configuráveis). Clique duplo não duplica (intervalo mínimo de 2 minutos) e há no máximo 8 marcações por dia.
+- **Jornada pela ficha**: quem tem carga de 6h faz 07:30 às 13:30 corridas; quem tem 8h faz 08:00 às 12:00 e 14:00 às 18:00, de segunda a sexta, com 10 minutos de tolerância. Tudo **provisório** e ajustável em **Frequência › Regras e feriados**. O RH muda a jornada de cada servidor (horário, dias da semana, teletrabalho ou dispensa do ponto) a partir de uma data, e a anterior fica no histórico.
+- **Espelho do ponto** do mês, dia a dia: marcações, horas feitas e situação (normal, verificar, registro incompleto, sem registro). Férias aprovadas, licenças, feriados e pontos facultativos entram sozinhos. Pode ser impresso.
+- **Frequência do setor**: resumo do mês por pessoa (com registro, sem registro, incompletos, a verificar, horas e saldo). O RH e o auditor veem todo o órgão; a chefia, só a equipe.
+- **Ajustes pelo RH, sem apagar nada**: incluir marcação esquecida e anular marcação errada, sempre com motivo. A anulada continua no espelho, riscada, e tudo fica na trilha de auditoria.
+- **Calendário de feriados** por órgão, com um botão que inclui os feriados nacionais e de Roraima do ano (Carnaval, Paixão, Corpus Christi, 9 de julho, 5 de outubro, Dia do Servidor e outros).
+- **Importação do relógio de ponto** (arquivo AFD das Portarias 671/2021 e 1.510/2009), identificando o servidor pelo CPF ou PIS, com prévia e sem duplicar marcações. Exemplo **fictício** em `resources/modelos-importacao/exemplo_ponto_ficticio.txt` (386 marcações de 10 servidores, 3 com erro de propósito).
+- Justificativas, abonos e o fechamento do mês ficam para as entregas 8 e 9.
 
 ### Entrega 6: painel, relatórios, API de consulta e manual
 

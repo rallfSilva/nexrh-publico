@@ -40,12 +40,14 @@ class AppServiceProvider extends ServiceProvider
 
         // Escala de férias: o órgão todo para RH, administração e auditoria; a equipe para a chefia.
         Gate::define('ver-escala', fn (User $u) => $u->can('ferias.ver') || $u->can('ferias.aprovar'));
+        // Frequência: o órgão todo para RH, administração e auditoria; a equipe para a chefia.
+        Gate::define('ver-frequencia', fn (User $u) => $u->can('frequencia.ver') || $u->can('frequencia.equipe'));
         Gate::define('aprovar-ferias', fn (User $u) => $u->can('ferias.gerenciar') || $u->can('ferias.aprovar'));
 
         // Relatórios: cada um diz quem pode ver; o menu aparece para quem pode ver algum.
         Gate::define('ver-relatorios', fn (User $u) => Catalogo::para($u) !== []);
 
-        Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar') || $u->can('ferias.gerenciar'));
+        Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar') || $u->can('ferias.gerenciar') || $u->can('frequencia.gerenciar'));
 
         // API: 60 consultas por minuto por chave (ou por IP, para quem chega sem chave).
         RateLimiter::for('api-chave', fn (Request $request) => Limit::perMinute(60)->by($request->bearerToken() ? hash('sha256', $request->bearerToken()) : $request->ip())

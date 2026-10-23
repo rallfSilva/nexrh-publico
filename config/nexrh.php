@@ -15,6 +15,7 @@ return [
         '04_modelo_dependentes.xlsx' => ['Dependentes', 'Dependentes com parentesco e finalidade (IR, previdência, salário-família).'],
         '05_modelo_ferias.xlsx' => ['Férias', 'Histórico e programação de férias por período aquisitivo, com etapa, dias e situação. Identifica o servidor pelo CPF.'],
         '06_modelo_afastamentos.xlsx' => ['Afastamentos', 'Licenças e afastamentos com tipo, período e documento. Importe antes das férias.'],
+        'exemplo_ponto_ficticio.txt' => ['Exemplo: relógio de ponto (fictício)', 'Arquivo AFD (Portaria 671/2021) com marcações inventadas de agosto de 2026 de dez servidores do exemplo 03, com um CPF de fora do órgão e uma linha ilegível de propósito.'],
         'exemplo_afastamentos_ficticio.xlsx' => ['Exemplo: afastamentos (fictício)', 'Planilha modelo 06 preenchida com licenças inventadas dos servidores do exemplo 03, com três linhas erradas de propósito.'],
         'exemplo_ferias_ficticio.xlsx' => ['Exemplo: férias (fictício)', 'Planilha modelo 05 preenchida com férias inventadas dos servidores do exemplo 03, com cinco linhas erradas de propósito.'],
         'exemplo_dependentes_ficticio.xlsx' => ['Exemplo: dependentes (fictício)', 'Planilha modelo 04 preenchida com dependentes inventados dos servidores do exemplo 03, para testar a importação.'],

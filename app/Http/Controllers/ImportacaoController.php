@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Importacao\AnalisadorAfastamentos;
 use App\Importacao\AnalisadorDependentes;
 use App\Importacao\AnalisadorFerias;
+use App\Importacao\AnalisadorPonto;
 use App\Importacao\AnalisadorQuadroCargos;
 use App\Importacao\AnalisadorServidores;
 use App\Importacao\AplicadorAfastamentos;
 use App\Importacao\AplicadorDependentes;
 use App\Importacao\AplicadorFerias;
+use App\Importacao\AplicadorPonto;
 use App\Importacao\AplicadorQuadroCargos;
 use App\Importacao\AplicadorServidores;
 use App\Models\Importacao;
@@ -52,20 +54,22 @@ class ImportacaoController extends Controller
         $user = $request->user();
         $request->mergeIfMissing(['tipo' => $this->tiposPermitidos($request)[0] ?? null]);
 
+        // O relógio de ponto gera um arquivo de texto (AFD); o resto são planilhas.
+        $ponto = $request->input('tipo') === 'ponto';
         $request->validate([
             'tipo' => ['required', Rule::in($this->tiposPermitidos($request))],
-            'arquivo' => ['required', 'file', 'mimes:xlsx', 'max:10240'],
+            'arquivo' => ['required', 'file', $ponto ? 'mimes:txt' : 'mimes:xlsx', 'max:10240'],
             'orgao_id' => [$user->orgao_id === null ? 'required' : 'nullable', 'exists:orgaos,id'],
         ], [
-            'arquivo.mimes' => 'Envie a planilha no formato .xlsx (Excel).',
-            'arquivo.max' => 'A planilha pode ter no máximo 10 MB.',
+            'arquivo.mimes' => $ponto ? 'Envie o arquivo AFD do relógio de ponto (texto, .txt).' : 'Envie a planilha no formato .xlsx (Excel).',
+            'arquivo.max' => 'O arquivo pode ter no máximo 10 MB.',
             'orgao_id.required' => 'Escolha o órgão.',
         ]);
 
         $tipo = $request->input('tipo');
         $orgaoId = $user->orgao_id ?? (int) $request->input('orgao_id');
         $arquivo = $request->file('arquivo');
-        $caminho = $arquivo->storeAs("importacoes/{$orgaoId}", Str::uuid().'.xlsx', 'local');
+        $caminho = $arquivo->storeAs("importacoes/{$orgaoId}", Str::uuid().($ponto ? '.txt' : '.xlsx'), 'local');
         $completo = Storage::disk('local')->path($caminho);
 
         try {
@@ -74,6 +78,7 @@ class ImportacaoController extends Controller
                 'dependentes' => app(AnalisadorDependentes::class)->analisar($completo, $orgaoId),
                 'ferias' => app(AnalisadorFerias::class)->analisar($completo, $orgaoId),
                 'afastamentos' => app(AnalisadorAfastamentos::class)->analisar($completo, $orgaoId),
+                'ponto' => app(AnalisadorPonto::class)->analisar($completo, $orgaoId),
                 default => app(AnalisadorQuadroCargos::class)->analisar($completo),
             };
         } catch (RuntimeException $e) {
@@ -98,7 +103,7 @@ class ImportacaoController extends Controller
             'dados' => $bloqueios === [] ? [$tipo => $resultado[$tipo]] : null,
         ]);
 
-        Auditoria::registrar('importacao', $importacao, "Planilha \"{$importacao->arquivo_nome}\" enviada para análise (".count($resultado['divergencias']).' divergência(s))');
+        Auditoria::registrar('importacao', $importacao, ($ponto ? 'Arquivo do relógio de ponto' : 'Planilha')." \"{$importacao->arquivo_nome}\" ".($ponto ? 'enviado' : 'enviada').' para análise ('.count($resultado['divergencias']).' divergência(s))');
 
         return redirect()->route('importacoes.show', $importacao);
     }
@@ -125,6 +130,15 @@ class ImportacaoController extends Controller
             return redirect()->route('ferias.escala')->with('sucesso', sprintf(
                 'Férias importadas: %d nova(s) e %d atualizada(s). Elas aparecem na escala do setor e na aba Férias de cada ficha.',
                 $r['criadas'], $r['atualizadas'],
+            ));
+        }
+
+        if ($importacao->tipo === 'ponto') {
+            $r = app(AplicadorPonto::class)->aplicar($importacao);
+
+            return redirect()->route('frequencia.index')->with('sucesso', sprintf(
+                'Relógio de ponto importado: %d marcação(ões) de %d servidor(es). Elas aparecem no espelho de cada um, com a indicação "R".',
+                $r['marcacoes'], $r['servidores'],
             ));
         }
 
@@ -178,7 +192,7 @@ class ImportacaoController extends Controller
         return redirect()->route('importacoes.index')->with('sucesso', 'Importação cancelada. Nada foi alterado.');
     }
 
-    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores; dependentes para quem gerencia o dossiê; férias e afastamentos para quem gerencia férias. */
+    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores; dependentes para quem gerencia o dossiê; férias e afastamentos para quem gerencia férias; relógio de ponto para quem gerencia a frequência. */
     private function tiposPermitidos(Request $request): array
     {
         $user = $request->user();
@@ -189,6 +203,7 @@ class ImportacaoController extends Controller
             $user->can('gerenciar-dossie') ? 'dependentes' : null,
             $user->can('ferias.gerenciar') ? 'ferias' : null,
             $user->can('ferias.gerenciar') ? 'afastamentos' : null,
+            $user->can('frequencia.gerenciar') ? 'ponto' : null,
         ]));
     }
 

@@ -4,11 +4,13 @@
         'inicio' => ['Primeiros passos', ['todos']],
         'perfis' => ['Quem faz o quê', ['todos']],
         'servidor' => ['Minha ficha, documentos e férias', ['servidor', 'todos']],
-        'chefia' => ['Chefia: equipe e férias', ['chefia']],
+        'ponto' => ['Meu ponto', ['servidor', 'chefia', 'todos']],
+        'chefia' => ['Chefia: equipe, férias e frequência', ['chefia']],
         'rh-servidores' => ['Cadastro de servidores', ['rh', 'administrador-orgao']],
         'rh-importar' => ['Importar planilhas', ['rh', 'administrador-orgao']],
         'rh-dossie' => ['Dossiê e dependentes', ['rh', 'administrador-orgao']],
         'rh-ferias' => ['Férias e afastamentos', ['rh', 'administrador-orgao']],
+        'rh-frequencia' => ['Frequência: jornadas, ajustes e relógio de ponto', ['rh', 'administrador-orgao']],
         'relatorios' => ['Painel e relatórios', ['rh', 'administrador-orgao', 'chefia', 'auditor']],
         'admin' => ['Administração do órgão', ['administrador-orgao', 'administrador-geral']],
         'api' => ['API de consulta', ['administrador-orgao', 'administrador-geral']],
@@ -67,11 +69,11 @@
                                 <table class="tbl tbl-rel">
                                     <thead><tr><th scope="col">Perfil</th><th scope="col">O que faz</th></tr></thead>
                                     <tbody>
-                                        <tr><td><b>Servidor</b></td><td>Consulta a própria ficha e baixa o PDF, envia documentos para o dossiê e pede férias.</td></tr>
-                                        <tr><td><b>Chefia</b></td><td>Vê a equipe das unidades que chefia, aprova ou recusa os pedidos de férias e acompanha a escala do setor.</td></tr>
-                                        <tr><td><b>Recursos humanos</b></td><td>Cadastra servidores, cargos e vagas, valida documentos, cuida dos dependentes, marca férias, registra afastamentos, importa planilhas e tira relatórios.</td></tr>
+                                        <tr><td><b>Servidor</b></td><td>Consulta a própria ficha e baixa o PDF, envia documentos para o dossiê, pede férias e registra o ponto.</td></tr>
+                                        <tr><td><b>Chefia</b></td><td>Vê a equipe das unidades que chefia, aprova ou recusa os pedidos de férias, acompanha a escala e a frequência do setor.</td></tr>
+                                        <tr><td><b>Recursos humanos</b></td><td>Cadastra servidores, cargos e vagas, valida documentos, cuida dos dependentes, marca férias, registra afastamentos, ajusta jornadas e marcações de ponto, importa planilhas e o relógio de ponto e tira relatórios.</td></tr>
                                         <tr><td><b>Administrador do órgão</b></td><td>Tudo o que o RH faz, mais usuários e perfis, unidades e organograma, chaves de API e a trilha de auditoria.</td></tr>
-                                        <tr><td><b>Auditor</b></td><td>Consulta cadastros, escala, relatórios e a trilha de auditoria, sem alterar nada e sem ver CPF completo nem documentos.</td></tr>
+                                        <tr><td><b>Auditor</b></td><td>Consulta cadastros, escala, frequência, relatórios e a trilha de auditoria, sem alterar nada e sem ver CPF completo nem documentos.</td></tr>
                                         <tr><td><b>Administrador geral</b></td><td>Cadastra os órgãos e os administradores de cada um. Cada órgão só vê os próprios dados.</td></tr>
                                     </tbody>
                                 </table>
@@ -94,11 +96,34 @@
                             <div class="nota"><x-icone nome="calendario" tamanho="18" /><span>Regras do órgão: {{ $regra->dias_por_periodo }} dias por período, em até {{ $regra->max_etapas }} etapas de pelo menos {{ $regra->min_dias_etapa }} dias, pedido com {{ $regra->antecedencia_dias }} dias de antecedência, no máximo {{ $regra->max_periodos_acumulados }} períodos acumulados.</span></div>
                             @break
 
+                        @case('ponto')
+                            <ol class="passos">
+                                <li>Em <b>Meu ponto</b> (no menu ou no painel), clique em <b>Registrar entrada</b> ao chegar e em <b>Registrar saída</b> ao sair. O botão alterna sozinho. Quem tem intervalo de almoço registra quatro vezes no dia.</li>
+                                <li>A hora gravada é a do servidor do sistema, não a do seu computador ou celular. O registro só funciona de dentro da rede do órgão; de fora, a tela avisa e não registra.</li>
+                                <li>Logo abaixo fica o <b>espelho do mês</b>: as marcações de cada dia, as horas feitas e a situação. Férias, licenças, feriados e pontos facultativos já aparecem preenchidos.</li>
+                                <li>Se esqueceu uma marcação ou registrou errado, avise a chefia ou o RH. Só o RH inclui ou anula marcações, sempre com motivo, e isso aparece no espelho.</li>
+                            </ol>
+                            {!! $figura('meu-ponto', 'Meu ponto: relógio, botão de registro e o espelho do mês.') !!}
+                            <div class="tbl-wrap">
+                                <table class="tbl tbl-rel">
+                                    <thead><tr><th scope="col">Situação no espelho</th><th scope="col">O que quer dizer</th></tr></thead>
+                                    <tbody>
+                                        <tr><td><span class="b b-ok">Normal</span></td><td>Marcações completas, dentro do horário e da tolerância.</td></tr>
+                                        <tr><td><span class="b b-warn">Verificar</span></td><td>Entrada depois do horário, saída antes ou horas abaixo da jornada, além da tolerância. O motivo aparece embaixo.</td></tr>
+                                        <tr><td><span class="b b-warn">Registro incompleto</span></td><td>Número ímpar de marcações: falta a saída ou a entrada de algum turno.</td></tr>
+                                        <tr><td><span class="b b-err">Sem registro</span></td><td>Dia de trabalho sem nenhuma marcação.</td></tr>
+                                        <tr><td><span class="b b-mute">Teletrabalho</span> <span class="b b-mute">Dispensado</span></td><td>Jornada sem registro de ponto, definida pelo RH.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            @break
+
                         @case('chefia')
-                            <p>A chefia vê só a equipe das unidades que chefia (e das subordinadas). No menu aparecem <b>Servidores</b>, <b>Férias</b> e <b>Relatórios</b>.</p>
+                            <p>A chefia vê só a equipe das unidades que chefia (e das subordinadas). No menu aparecem <b>Servidores</b>, <b>Férias</b>, <b>Frequência</b> e <b>Relatórios</b>.</p>
                             <ol class="passos">
                                 <li><b>Aprovar férias:</b> em <b>Férias › A aprovar</b> (o número no menu mostra quantos pedidos esperam), confira as datas e clique em <b>Aprovar</b>, ou em <b>Recusar</b> informando o motivo, que o servidor vai ver. Se as datas passaram a conflitar com outra ausência, o sistema avisa e não deixa aprovar.</li>
                                 <li><b>Escala do setor:</b> em <b>Férias</b>, a grade do mês mostra quem está fora em cada dia e a linha "Presentes" fica vermelha se o setor ficar abaixo do mínimo. Troque para <b>Ano</b> para ver o mapa do ano.</li>
+                                <li><b>Frequência do setor:</b> em <b>Frequência</b>, o resumo do mês de cada pessoa da equipe: dias com registro, sem registro, incompletos, a verificar e o saldo de horas. Clique no nome para ver o espelho dia a dia. A chefia acompanha; ajustes de marcação são pedidos ao RH.</li>
                                 <li>Seus próprios pedidos de férias vão para a chefia superior ou para o RH. Ninguém aprova as próprias férias.</li>
                             </ol>
                             {!! $figura('chefia-aprovar', 'Férias a aprovar, na visão da chefia.') !!}
@@ -188,6 +213,18 @@
                             <p>No Linux, os equivalentes são <code>./scripts/backup.sh</code> e <code>./scripts/restaurar.sh</code>. Guarde uma cópia fora do computador do sistema e guarde a <b>APP_KEY</b> do arquivo <code>.env</code> em lugar seguro e separado: sem ela, CPF, documentos e dossiê da cópia não podem ser lidos. O passo a passo completo está no guia da TI (<code>docs/guia-ti.md</code>).</p>
                             @break
 
+                        @case('rh-frequencia')
+                            <ol class="passos">
+                                <li><b>Regras e feriados:</b> em <b>Frequência › Regras e feriados</b>, defina o horário de quem faz 6h e de quem faz 8h por dia, a tolerância e as redes do órgão de onde o ponto pode ser registrado. O botão <b>Incluir feriados nacionais e de RR</b> preenche o calendário do ano; confira e inclua os decretos de ponto facultativo.</li>
+                                <li><b>Jornada:</b> cada servidor começa com o horário padrão pela carga da ficha. No espelho do servidor, <b>Alterar jornada</b> muda o horário, os dias da semana ou a modalidade (presencial, teletrabalho ou dispensado do ponto), a partir de uma data. A jornada anterior fica no histórico.</li>
+                                <li><b>Incluir marcação:</b> no espelho, para um esquecimento justificado, com data, hora e motivo. Ela aparece com a marca <b>RH</b>.</li>
+                                <li><b>Anular marcação:</b> clique na marcação errada e informe o motivo. Ela continua no espelho, riscada, e deixa de contar. Nenhuma marcação é apagada.</li>
+                                <li><b>Relógio de ponto:</b> em <b>Frequência › Importar relógio de ponto</b>, envie o arquivo AFD (.txt) exportado do relógio, nos leiautes da Portaria 671/2021 ou 1.510/2009. O sistema acha o servidor pelo CPF ou pelo PIS da ficha, mostra a prévia e só grava ao confirmar. Reenviar o mesmo arquivo não duplica.</li>
+                            </ol>
+                            {!! $figura('frequencia', 'Espelho do ponto de um servidor, na visão do RH.') !!}
+                            <div class="nota"><x-icone nome="alerta" tamanho="18" /><span>Justificativas, abonos e o fechamento do mês para a folha chegam nas próximas entregas. Por enquanto, "Sem registro" e "Incompleto" ficam visíveis para acompanhamento.</span></div>
+                            @break
+
                         @case('duvidas')
                             <dl class="faq">
                                 <dt>O sistema não deixa marcar as férias. Por quê?</dt>
@@ -198,6 +235,10 @@
                                 <dd>O sistema não apaga: documentos são arquivados, dependentes encerrados, férias canceladas e afastamentos cancelados, sempre com motivo. A trilha de auditoria mostra o valor antigo, para refazer.</dd>
                                 <dt>Esqueci a senha ou perdi o celular da verificação em duas etapas.</dt>
                                 <dd>Use "Esqueci a senha" na tela de entrada. Para a verificação em duas etapas, use um dos códigos de recuperação guardados ao ativar, ou peça ao administrador do órgão.</dd>
+                                <dt>O ponto diz que estou fora da rede do órgão.</dt>
+                                <dd>O registro só vale de dentro da rede do órgão. A tela mostra o endereço de onde você está acessando: passe esse dado ao RH ou à TI, que conferem se a rede está cadastrada em Regras e feriados.</dd>
+                                <dt>Esqueci de registrar a saída. E agora?</dt>
+                                <dd>O dia fica como "Registro incompleto". Avise a chefia ou o RH, que inclui a marcação com o motivo.</dd>
                                 <dt>Os dados de demonstração são de pessoas reais?</dt>
                                 <dd>Não. Nomes, CPFs e valores de demonstração e dos exemplos são inventados.</dd>
                             </dl>

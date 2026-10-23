@@ -23,12 +23,13 @@
             <a href="{{ route('painel') }}" class="{{ $nav('painel') }}"><x-icone nome="painel" />Painel</a>
             @if ($user->servidor()->exists() || $user->hasRole('servidor'))
                 <a href="{{ route('minha-ficha') }}" class="{{ $nav('minha-ficha*') }}"><x-icone nome="pasta" />Minha ficha</a>
+                <a href="{{ route('meu-ponto') }}" class="{{ $nav('meu-ponto*') }}"><x-icone nome="relogio" />Meu ponto</a>
             @endif
             @can('ver-relatorios')
                 <a href="{{ route('relatorios.index') }}" class="{{ $nav('relatorios.*') }}"><x-icone nome="relatorio" />Relatórios</a>
             @endcan
 
-            @if ($user->can('orgaos.gerenciar') || $user->can('unidades.ver') || $user->can('cargos.ver') || $user->can('listar-servidores') || $user->can('ver-escala'))
+            @if ($user->can('orgaos.gerenciar') || $user->can('unidades.ver') || $user->can('cargos.ver') || $user->can('listar-servidores') || $user->can('ver-escala') || $user->can('ver-frequencia'))
                 <span class="cap">Estrutura</span>
             @endif
             @can('orgaos.gerenciar')
@@ -38,7 +39,7 @@
                 <a href="{{ route('unidades.index') }}" class="{{ $nav('unidades.*') }}"><x-icone nome="organograma" />Unidades e organograma</a>
             @endcan
             @can('cargos.ver')
-                <a href="{{ route('cargos.index') }}" class="{{ $nav('cargos.*') || $nav('vagas.*') || $nav('importacoes.*') ? 'on' : '' }}"><x-icone nome="cargos" />Cargos e vagas</a>
+                <a href="{{ route('cargos.index') }}" class="{{ $nav('cargos.*') || $nav('vagas.*') || ($nav('importacoes.*') && request('tipo') !== 'ponto' && optional(request()->route('importacao'))->tipo !== 'ponto') ? 'on' : '' }}"><x-icone nome="cargos" />Cargos e vagas</a>
             @endcan
             @can('listar-servidores')
                 <a href="{{ route('servidores.index') }}" class="{{ $nav('servidores.*') || $nav('declaracoes.*') || $nav('dependentes.*') ? 'on' : '' }}"><x-icone nome="servidor" />Servidores</a>
@@ -54,6 +55,9 @@
                 <a href="{{ route('ferias.escala') }}" class="{{ $nav('ferias.*') || $nav('afastamentos.*') ? 'on' : '' }}"><x-icone nome="ferias" />Férias
                     @if ($feriasAAprovar)<em class="cnt" aria-label="{{ $feriasAAprovar }} a aprovar">{{ $feriasAAprovar }}</em>@endif
                 </a>
+            @endcan
+            @can('ver-frequencia')
+                <a href="{{ route('frequencia.index') }}" class="{{ $nav('frequencia.*') || ($nav('importacoes.*') && (request('tipo') === 'ponto' || optional(request()->route('importacao'))->tipo === 'ponto')) ? 'on' : '' }}"><x-icone nome="frequencia" />Frequência</a>
             @endcan
 
             <span class="cap">Administração</span>
@@ -71,8 +75,8 @@
             <a href="{{ route('ajuda.index') }}" class="{{ $nav('ajuda.*') }}"><x-icone nome="ajuda" />Ajuda</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 6<br>
-            Painel, relatórios, API e manual.
+            Fase 2 · Entrega 7<br>
+            Frequência: jornada e registro do ponto.
         </div>
     </aside>
 

@@ -419,6 +419,50 @@
     .tbl-rel th { padding: 10px 14px; }
     .tbl-rel td { padding: 9px 14px; }
 
+    /* Frequência */
+    .ponto-agora { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px 32px; align-items: center; background: linear-gradient(120deg, #F3FAFF, #F2FBFB); border-color: #D7E9F5; }
+    .relogio-grande { display: flex; flex-direction: column; gap: 2px; }
+    .relogio-grande .hora { font-size: 52px; font-weight: 800; letter-spacing: -.04em; line-height: 1; color: var(--color-marinho); font-variant-numeric: tabular-nums; }
+    .relogio-grande .data { font-size: 13.5px; color: var(--color-texto2); }
+    .ponto-info { display: flex; flex-direction: column; gap: 12px; font-size: 14px; min-width: 0; }
+    .rotulo-mini { display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--color-texto2); margin-bottom: 3px; }
+    .ponto-acao { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; text-align: right; }
+    .ponto-acao .flash { text-align: left; max-width: 360px; }
+    .btn-ponto { min-height: 56px; padding: 0 28px; font-size: 16.5px; border-radius: 14px; }
+    .marcas { display: flex; flex-wrap: wrap; gap: 6px; }
+    .marca { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 8px; background: #fff; border: 1px solid #C9DCE8; color: var(--color-marinho); font: inherit; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .marca i { font-style: normal; font-size: 9.5px; font-weight: 800; letter-spacing: .04em; padding: 1px 4px; border-radius: 4px; background: var(--color-gelo); color: var(--color-marinho); }
+    .marca.origem-rh i { background: #FFEBD9; color: #9A3412; }
+    .marca.anulada { text-decoration: line-through; color: #9AAFBE; border-style: dashed; background: transparent; }
+    button.marca { cursor: pointer; }
+    button.marca:hover { border-color: #E8A3A3; background: #FFF5F5; }
+    .esp-totais { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); margin: 0; border-top: 1px solid var(--color-linha); border-bottom: 1px solid var(--color-linha); }
+    .esp-totais > div { padding: 12px 20px; border-right: 1px solid #EEF3F7; }
+    .esp-totais > div:last-child { border-right: 0; }
+    .esp-totais dt { font-size: 12px; color: var(--color-texto2); font-weight: 600; }
+    .esp-totais dd { margin: 2px 0 0; font-size: 22px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+    .esp-totais dd small { display: block; margin-top: 1px; font-size: 12px; font-weight: 500; color: var(--color-texto2); letter-spacing: 0; }
+    .esp-totais .ruim dd { color: #9F1D1D; }
+    .esp-totais .atencao dd { color: #9A3412; }
+    .tbl-esp th.dia { white-space: nowrap; font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--color-tinta); background: transparent; border-bottom: 1px solid #EEF3F7; padding: 10px 16px; width: 1%; }
+    .tbl-esp th.dia span { color: var(--color-texto2); font-weight: 500; font-size: 12.5px; margin-left: 4px; }
+    .tbl-esp td { padding: 9px 16px; }
+    .tbl-esp tbody tr:hover th.dia { background: #F9FCFE; }
+    .tbl-esp tr.apagado th, .tbl-esp tr.apagado td { background: #FAFCFD; color: var(--color-texto2); }
+    .tbl-esp tr.apagado th.dia b { color: var(--color-texto2); font-weight: 600; }
+    .tbl-esp tr.hoje th, .tbl-esp tr.hoje td { background: #F2F9FF; }
+    .tbl-esp tr.hoje th.dia { box-shadow: inset 3px 0 0 var(--color-azul); }
+    .esp-nota { margin: 0; padding: 12px 20px 18px; }
+    .tbl-freq td { vertical-align: top; }
+    .jornada-card { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+    .jornada-card > div { flex: 1 1 320px; font-size: 14.5px; }
+    .jornadas-ant { flex-basis: 100%; font-size: 13px; color: var(--color-texto2); }
+    .jornadas-ant summary { cursor: pointer; font-weight: 600; color: var(--color-azul); }
+    .jornadas-ant ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+    .dias-semana { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 4px; }
+    .feriado-novo { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--color-linha); }
+    .feriado-novo h3 { margin: 0 0 10px; font-size: 15px; }
+
     @media print {
         .side, .top, .nao-imprimir { display: none !important; }
         .manual { display: block; }
@@ -426,6 +470,10 @@
         .content { padding: 0; max-width: none; }
         .card { box-shadow: none; break-inside: avoid; }
         body { background: #fff; }
+        .tbl-wrap { overflow: visible; }
+        .tbl-esp { font-size: 11.5px; }
+        .tbl-esp td, .tbl-esp th.dia { padding: 4px 10px; }
+        .card-flush.espelho { break-inside: auto; }
     }
 
     @media (max-width: 960px) {
@@ -462,5 +510,25 @@
         .g2-chaves { grid-template-columns: minmax(0, 1fr); }
         .manual { grid-template-columns: minmax(0, 1fr); }
         .manual-indice { position: static; }
+        .ponto-agora { grid-template-columns: minmax(0, 1fr); }
+        .ponto-acao { align-items: stretch; text-align: left; }
+        .btn-ponto { width: 100%; justify-content: center; }
+        .relogio-grande .hora { font-size: 44px; }
+        .esp-totais > div { padding: 10px 14px; }
+        .tbl-esp th.dia, .tbl-esp td { padding-left: 10px; padding-right: 10px; }
+    }
+    @media (max-width: 600px) {
+        /* Espelho em cartões: dia à esquerda, marcações e horas na linha, situação embaixo. */
+        .tbl-esp thead { display: none; }
+        .tbl-esp, .tbl-esp tbody { display: block; }
+        .tbl-esp tr { display: grid; grid-template-columns: 78px minmax(0, 1fr) auto; border-bottom: 1px solid #EEF3F7; }
+        .tbl-esp tr.apagado { background: #FAFCFD; }
+        .tbl-esp tr.hoje { background: #F2F9FF; box-shadow: inset 3px 0 0 var(--color-azul); }
+        .tbl-esp tr.hoje th.dia { box-shadow: none; }
+        .tbl-esp th.dia { grid-row: span 2; border: 0; width: auto; display: flex; flex-direction: column; justify-content: center; }
+        .tbl-esp th.dia span { margin-left: 0; }
+        .tbl-esp td { border: 0; padding-top: 8px; padding-bottom: 0; background: transparent !important; }
+        .tbl-esp td:last-child { grid-column: 2 / -1; padding-bottom: 9px; }
+        .tbl-esp td:last-child:empty { display: none; }
     }
 }

@@ -1,4 +1,6 @@
-# Plano de implementação da Fase 1
+# Plano de implementação
+
+## Fase 1: cadastro, férias e painel
 
 | Entrega | Conteúdo | Situação |
 |---|---|---|
@@ -7,13 +9,24 @@
 | 3 | Servidores (ficha SEGAD, ficha em PDF) | Concluída |
 | 4 | Dossiê e dependentes | Concluída |
 | 5 | Férias com bloqueio de conflito e mínimo por setor | Concluída |
-| 6 | Painel, relatórios, API inicial e manual | Em teste pelo cliente |
+| 6 | Painel, relatórios, API inicial e manual | Concluída |
+
+## Fase 2: frequência
+
+| Entrega | Conteúdo | Situação |
+|---|---|---|
+| 7 | Jornada e registro do ponto: meu ponto, espelho, frequência do setor, feriados, importação do relógio | Em teste pelo cliente |
+| 8 | Ocorrências e abonos: justificativas do servidor, decisão da chefia, abonos pelo RH | Prevista |
+| 9 | Fechamento do mês e boletim de frequência para a folha | Prevista |
 
 ## Pendências do cliente
 
 - Lista oficial de unidades e chefes (a demonstração usa GAB, ASJUR, COAM, DTI, DRH e DAC).
 - Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
 - Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
+- Norma de frequência da SELC (horários, tolerância, banco de horas) e o decreto de pontos facultativos do Estado: as regras atuais são provisórias e o RH ajusta em **Frequência › Regras e feriados**.
+- Faixas de rede (IP) das sedes do órgão, de onde o ponto pode ser registrado.
+- Modelo do relógio de ponto em uso, se houver, para testar a importação com um arquivo AFD de verdade (só depois da validação de segurança).
 - Onde o sistema vai ficar hospedado. Enquanto não se decide, a premissa é o computador local (Windows com Docker), com a cópia de segurança diária pelo Agendador de Tarefas.
 
 ## Entrega 1: o que testar
@@ -74,6 +87,20 @@ Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
 12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.
+
+## Entrega 7: o que testar
+
+Use só os dados fictícios da demonstração.
+
+1. Entrar como `servidor.selc@nexrh.local` e abrir **Meu ponto**: o relógio mostra a hora do sistema e a jornada de hoje (07:30 às 13:30). Clicar em **Registrar entrada**: a marcação aparece em "Marcações de hoje" e no espelho. Clicar de novo logo em seguida: o sistema pede para esperar. Depois de 2 minutos, o botão vira **Registrar saída**.
+2. No espelho do mês, conferir os dias de "Sem expediente", os feriados (5/10 Dia de Roraima, 12/10), os dias com **Verificar** (atraso ou saída antecipada, com o motivo embaixo) e o saldo de horas. Voltar para o mês anterior com a seta e testar **Imprimir**.
+3. Entrar como `rh.selc@nexrh.local` e abrir **Frequência**: escolher um setor e um mês. A tabela mostra cada pessoa com dias com registro, sem registro, incompletos, a verificar, horas e saldo. Os servidores de teletrabalho da DTI e o dispensado do GAB não têm registro esperado; quem está de férias aparece como "Férias".
+4. Clicar num nome para abrir o espelho. Testar **Incluir marcação** (data, hora e motivo): ela aparece com a marca **RH**. Clicar numa marcação e **anular** com motivo: ela fica riscada e deixa de contar.
+5. No mesmo espelho, **Alterar jornada**: por exemplo, 08:00-12:00, 14:00-18:00 a partir de amanhã. A jornada anterior vai para "Jornadas anteriores" e os dias passados não mudam.
+6. Abrir **Frequência › Regras e feriados**: conferir o horário de 6h e de 8h, a tolerância e as redes. A tela mostra o endereço de onde você está acessando. Trocar o ano e clicar em **Incluir feriados nacionais e de RR**; incluir e retirar um ponto facultativo.
+7. Abrir **Frequência › Importar relógio de ponto** e enviar o arquivo de exemplo (em **Modelos de planilha**, "exemplo_ponto_ficticio.txt"). O relatório mostra 386 marcações prontas, uma linha ilegível e um CPF que não é de ninguém. Confirmar e abrir agosto de 2026 no setor DAC. Enviar o mesmo arquivo de novo: nada é duplicado.
+8. Entrar como `chefia.dti@nexrh.local`: **Frequência** mostra só a DTI, sem os botões do RH. Como servidor, o menu não tem **Frequência**.
+9. Abrir **Ajuda** › **Meu ponto** e **Frequência**, e a **Trilha de auditoria** com as inclusões, anulações e a importação.
 
 ## Entrega 6: o que testar
 

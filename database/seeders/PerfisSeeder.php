@@ -31,6 +31,9 @@ class PerfisSeeder extends Seeder
         'ferias.ver' => 'Ver a escala de férias e os afastamentos de todo o órgão',
         'ferias.gerenciar' => 'Marcar, cancelar e interromper férias, registrar afastamentos e definir as regras de férias',
         'ferias.aprovar' => 'Aprovar ou recusar as férias pedidas pela própria equipe',
+        'frequencia.ver' => 'Ver a frequência e o espelho de ponto de todo o órgão',
+        'frequencia.equipe' => 'Ver a frequência e o espelho de ponto da própria equipe',
+        'frequencia.gerenciar' => 'Definir jornadas, feriados e regras de frequência, incluir e anular marcações e importar o relógio de ponto',
         'painel.ver' => 'Ver o painel',
         'api.gerenciar' => 'Criar e revogar as chaves de acesso à API de consulta',
     ];
@@ -38,11 +41,11 @@ class PerfisSeeder extends Seeder
     /** @var array<string, list<string>> */
     public const PERFIS = [
         'administrador-geral' => ['*'],
-        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'api.gerenciar', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
-        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
-        'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe', 'ferias.aprovar'],
+        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'api.gerenciar', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar', 'frequencia.ver', 'frequencia.gerenciar'],
+        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar', 'frequencia.ver', 'frequencia.gerenciar'],
+        'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe', 'ferias.aprovar', 'frequencia.equipe'],
         'servidor' => ['painel.ver'],
-        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'servidores.ver', 'ferias.ver'],
+        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'servidores.ver', 'ferias.ver', 'frequencia.ver'],
     ];
 
     public function run(): void

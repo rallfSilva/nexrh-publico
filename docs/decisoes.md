@@ -96,6 +96,26 @@ A API devolve só o que um sistema de ponto ou de escala precisa: nome, matrícu
 
 Excel e PDF saem do sistema e podem circular, então cada exportação gera um registro `exportacao` com o relatório, o formato, os filtros e o número de linhas. As telas de relatório mostram até 300 linhas; a exportação leva todas.
 
+## Marcação de ponto não é apagada
+
+Marcações do servidor, do relógio ou do RH nunca são apagadas nem editadas. Para corrigir, o RH anula com motivo (a marcação fica no espelho, riscada, e deixa de contar) e inclui a certa, também com motivo e com a marca **RH**. Tudo fica na trilha de auditoria, com o IP de quem registrou.
+
+## Ponto só de dentro da rede do órgão
+
+O registro pelo sistema usa a hora do servidor (nunca a do navegador) e só é aceito de IPs das redes cadastradas em **Regras e feriados**. Por padrão valem as faixas privadas (10/8, 172.16/12, 192.168/16) e a máquina local, o que serve para a instalação no computador do órgão. Quando o sistema for publicado para a rede, o RH ou a TI devem restringir às faixas das sedes. O órgão pode desligar a exigência, por exemplo para quem bate o ponto só pelo relógio.
+
+## Jornada padrão pela carga da ficha
+
+Ninguém precisa cadastrar jornada para começar: a carga horária da ficha (6h ou 8h diárias) define o horário padrão do órgão (07:30 às 13:30, ou 08:00 às 12:00 e 14:00 às 18:00, de segunda a sexta). O RH só grava jornada para quem foge do padrão (outro horário, teletrabalho, dispensa do ponto), com data de início; a anterior termina na véspera, então os meses passados não mudam. Mudar o horário padrão nas regras vale para todos os meses de quem não tem jornada própria.
+
+## Relógio de ponto pelo arquivo AFD
+
+O relógio de ponto (REP) entra pelo arquivo AFD, que todos os modelos exportam, nos leiautes da Portaria 671/2021 (CPF) e da 1.510/2009 (PIS). Só as marcações (registro tipo 3) são lidas. A mesma pessoa no mesmo minuto é uma marcação só, então o arquivo do mês pode ser enviado de novo a cada semana sem duplicar. Marcações com data no futuro bloqueiam a importação, porque indicam relógio com a hora errada.
+
+## Feriados sugeridos, conferidos pelo RH
+
+O sistema calcula os feriados nacionais (inclusive os móveis, pela data da Páscoa) e os de Roraima e Boa Vista, mas só os grava quando o RH pede, ano a ano, para conferir com o decreto do Estado. Carnaval, Corpus Christi e Dia do Servidor entram como ponto facultativo. Feriado e ponto facultativo não contam como dia de trabalho no espelho.
+
 ## Manual dentro do sistema
 
 O manual fica em **Ajuda**, na mesma versão do sistema instalado, e marca as partes do perfil de quem está lendo. As imagens usam só dados fictícios. A TI tem um guia à parte, em `docs/guia-ti.md`.
