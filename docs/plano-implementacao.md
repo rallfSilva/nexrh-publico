@@ -16,7 +16,7 @@
 | Entrega | Conteúdo | Situação |
 |---|---|---|
 | 7 | Jornada e registro do ponto: meu ponto, espelho, frequência do setor, feriados, importação do relógio | Em teste pelo cliente |
-| 8 | Ocorrências e abonos: justificativas do servidor, decisão da chefia, abonos pelo RH | Prevista |
+| 8 | Ocorrências e abonos: justificativas do servidor, decisão da chefia, abonos pelo RH | Em teste pelo cliente |
 | 9 | Fechamento do mês e boletim de frequência para a folha | Prevista |
 
 ## Pendências do cliente
@@ -24,9 +24,9 @@
 - Lista oficial de unidades e chefes (a demonstração usa GAB, ASJUR, COAM, DTI, DRH e DAC).
 - Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
 - Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
-- Norma de frequência da SELC (horários, tolerância, banco de horas) e o decreto de pontos facultativos do Estado: as regras atuais são provisórias e o RH ajusta em **Frequência › Regras e feriados**.
+- Decreto de pontos facultativos do Estado, para conferir o calendário em **Frequência › Regras e feriados**. Já respondido pela SELC: jornada 07:30 às 13:30, tolerância de 15 minutos, sem banco de horas, secretário, adjunto e coordenadores não registram ponto, sem relógio de ponto.
 - Faixas de rede (IP) das sedes do órgão, de onde o ponto pode ser registrado.
-- Modelo do relógio de ponto em uso, se houver, para testar a importação com um arquivo AFD de verdade (só depois da validação de segurança).
+- Integração com o sistema da DTI que registra o ponto ao entrar no computador: formato dos dados, se a SELC quiser trazê-los para o NexRH.
 - Onde o sistema vai ficar hospedado. Enquanto não se decide, a premissa é o computador local (Windows com Docker), com a cópia de segurança diária pelo Agendador de Tarefas.
 
 ## Entrega 1: o que testar
@@ -87,6 +87,19 @@ Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
 12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.
+
+## Entrega 8: o que testar
+
+Use só os dados fictícios da demonstração.
+
+1. Entrar como `servidor.selc@nexrh.local` e abrir **Meu ponto**: o cartão **Ocorrências para justificar** lista os dias com falta, atraso, saída antecipada ou registro incompleto deste mês e do anterior. O **Painel** mostra quantas são.
+2. Clicar em **Justificar** num dia "Sem registro", escolher **Declaração de comparecimento**, escrever o motivo e tentar enviar sem anexo: o sistema pede o documento. Anexar um PDF qualquer e enviar. A justificativa aparece em **Minhas justificativas** como "Em análise" e o dia sai da lista.
+3. Justificar um atraso com **Esqueci de registrar** e depois **retirar** (o X): o dia volta para a lista.
+4. Entrar como `chefia.dti@nexrh.local`: o menu **Frequência** mostra o número de justificativas esperando. Abrir **Frequência › Justificativas**: aparecem as da demonstração (esquecimento, serviço externo e uma declaração com anexo). Abrir o anexo, **abonar** uma e **recusar** outra com motivo. Ver a aba **Decididas**.
+5. Voltar como servidor (ou abrir o espelho como RH): o dia abonado aparece como **Abonado**, conta a jornada inteira e entra no saldo; o recusado mostra o motivo e pode ser justificado de novo.
+6. Entrar como `rh.selc@nexrh.local`, abrir o espelho de alguém e usar **Abonar dias** (ou o botão **Abonar** na linha do dia).
+7. Em **Frequência › Regras e feriados**: a tolerância está em 15 minutos e os cargos de secretário, adjunto e coordenador estão marcados como dispensados. No espelho de um coordenador, a jornada aparece como "Dispensado pelo cargo".
+8. Como `auditor.selc@nexrh.local`: vê a frequência, mas não a fila de justificativas nem os anexos. Na **Trilha de auditoria**, as justificativas aparecem com o motivo como "[protegido]".
 
 ## Entrega 7: o que testar
 

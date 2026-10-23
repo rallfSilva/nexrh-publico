@@ -38,6 +38,19 @@
                 <label class="check" style="margin-top:10px"><input type="hidden" name="exigir_rede" value="0"><input type="checkbox" name="exigir_rede" value="1" @checked(old('exigir_rede', $regra->exigir_rede))> Só aceitar o registro de dentro da rede do órgão</label>
                 <x-campo nome="redes_permitidas" rotulo="Redes do órgão" :valor="$regra->redes_permitidas" maxlength="500" ajuda="Endereços ou faixas separados por vírgula, ex.: 10.20.0.0/16, 200.10.5.7. Peça à TI a faixa da rede da SELC." />
                 <p class="small muted" style="margin:6px 0 0">Você está acessando de <b>{{ $ip }}</b>: {{ $regra->redePermite($ip) ? 'dentro das redes acima.' : 'fora das redes acima.' }}</p>
+                <h2 style="margin-top:22px">Cargos dispensados do ponto</h2>
+                <p class="hint">Quem ocupa estes cargos não registra o ponto. Para exigir de alguém em particular, altere a jornada no espelho da pessoa.</p>
+                @php
+                    $marcados = array_map('intval', old('cargos_dispensados', $dispensados));
+                @endphp
+                <div class="cargos-dispensa">
+                    @forelse ($cargos->sortBy(fn ($c) => [! in_array($c->id, $marcados, true), $c->denominacao]) as $c)
+                        <label class="check"><input type="checkbox" name="cargos_dispensados[]" value="{{ $c->id }}" @checked(in_array($c->id, $marcados, true))> {{ $c->denominacao }}</label>
+                    @empty
+                        <p class="small muted" style="margin:0">Nenhum cargo cadastrado no quadro.</p>
+                    @endforelse
+                </div>
+                @error('cargos_dispensados.*')<span class="erro">{{ $message }}</span>@enderror
                 <div class="nota"><x-icone nome="auditoria" tamanho="18" /><span>Cada alteração fica na trilha de auditoria, com o valor antigo e o novo.</span></div>
                 <div class="form-acoes">
                     <button type="submit" class="btn btn-p"><x-icone nome="ok" tamanho="18" />Salvar regras</button>

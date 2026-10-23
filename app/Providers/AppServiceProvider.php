@@ -43,6 +43,7 @@ class AppServiceProvider extends ServiceProvider
         // Frequência: o órgão todo para RH, administração e auditoria; a equipe para a chefia.
         Gate::define('ver-frequencia', fn (User $u) => $u->can('frequencia.ver') || $u->can('frequencia.equipe'));
         Gate::define('aprovar-ferias', fn (User $u) => $u->can('ferias.gerenciar') || $u->can('ferias.aprovar'));
+        Gate::define('analisar-justificativas', fn (User $u) => $u->can('frequencia.gerenciar') || $u->can('frequencia.equipe'));
 
         // Relatórios: cada um diz quem pode ver; o menu aparece para quem pode ver algum.
         Gate::define('ver-relatorios', fn (User $u) => Catalogo::para($u) !== []);

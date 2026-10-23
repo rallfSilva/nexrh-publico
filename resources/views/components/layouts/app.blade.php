@@ -23,7 +23,7 @@
             <a href="{{ route('painel') }}" class="{{ $nav('painel') }}"><x-icone nome="painel" />Painel</a>
             @if ($user->servidor()->exists() || $user->hasRole('servidor'))
                 <a href="{{ route('minha-ficha') }}" class="{{ $nav('minha-ficha*') }}"><x-icone nome="pasta" />Minha ficha</a>
-                <a href="{{ route('meu-ponto') }}" class="{{ $nav('meu-ponto*') }}"><x-icone nome="relogio" />Meu ponto</a>
+                <a href="{{ route('meu-ponto') }}" class="{{ $nav('meu-ponto*') || $nav('justificativas.create') ? 'on' : '' }}"><x-icone nome="relogio" />Meu ponto</a>
             @endif
             @can('ver-relatorios')
                 <a href="{{ route('relatorios.index') }}" class="{{ $nav('relatorios.*') }}"><x-icone nome="relatorio" />Relatórios</a>
@@ -57,7 +57,10 @@
                 </a>
             @endcan
             @can('ver-frequencia')
-                <a href="{{ route('frequencia.index') }}" class="{{ $nav('frequencia.*') || ($nav('importacoes.*') && (request('tipo') === 'ponto' || optional(request()->route('importacao'))->tipo === 'ponto')) ? 'on' : '' }}"><x-icone nome="frequencia" />Frequência</a>
+                @php($justificativasAAnalisar = $user->can('analisar-justificativas') ? \App\Models\Justificativa::aAnalisarPor($user)->count() : 0)
+                <a href="{{ route('frequencia.index') }}" class="{{ $nav('frequencia.*') || $nav('justificativas.index') || ($nav('importacoes.*') && (request('tipo') === 'ponto' || optional(request()->route('importacao'))->tipo === 'ponto')) ? 'on' : '' }}"><x-icone nome="frequencia" />Frequência
+                    @if ($justificativasAAnalisar)<em class="cnt" aria-label="{{ $justificativasAAnalisar }} justificativas a analisar">{{ $justificativasAAnalisar }}</em>@endif
+                </a>
             @endcan
 
             <span class="cap">Administração</span>
@@ -75,8 +78,8 @@
             <a href="{{ route('ajuda.index') }}" class="{{ $nav('ajuda.*') }}"><x-icone nome="ajuda" />Ajuda</a>
         </nav>
         <div class="foot">
-            Fase 2 · Entrega 7<br>
-            Frequência: jornada e registro do ponto.
+            Fase 2 · Entrega 8<br>
+            Frequência: ocorrências e abonos.
         </div>
     </aside>
 

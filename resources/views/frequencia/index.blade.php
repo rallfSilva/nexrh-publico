@@ -12,12 +12,18 @@
             <h1 class="h1">Frequência</h1>
             <p class="sub">Resumo do mês de cada setor. Clique no nome para ver o espelho do ponto dia a dia.</p>
         </div>
-        @can('frequencia.gerenciar')
-            <div class="btns">
-                <a href="{{ route('importacoes.create', ['tipo' => 'ponto']) }}" class="btn btn-s"><x-icone nome="arquivo" />Importar relógio de ponto</a>
+        <div class="btns">
+            @can('analisar-justificativas')
+                @php
+                    $emAnalise = \App\Models\Justificativa::aAnalisarPor($user)->count();
+                @endphp
+                <a href="{{ route('justificativas.index') }}" class="btn {{ $emAnalise ? 'btn-p' : 'btn-s' }}"><x-icone nome="ok" />Justificativas{{ $emAnalise ? ' a analisar ('.$emAnalise.')' : '' }}</a>
+            @endcan
+            @can('frequencia.gerenciar')
+                <a href="{{ route('importacoes.create', ['tipo' => 'ponto']) }}" class="btn btn-s"><x-icone nome="arquivo" />Importar relógio</a>
                 <a href="{{ route('frequencia.regras') }}" class="btn btn-s"><x-icone nome="editar" />Regras e feriados</a>
-            </div>
-        @endcan
+            @endcan
+        </div>
     </div>
 
     @if ($unidades->isEmpty())
@@ -33,7 +39,7 @@
             <div class="escala-cab">
                 <div>
                     <h2>{{ $unidade->sigla }} · {{ ucfirst($mes->translatedFormat('F \d\e Y')) }}</h2>
-                    <p class="hint">{{ $linhas->count() }} {{ $linhas->count() === 1 ? 'pessoa' : 'pessoas' }} · {{ $soma('faltas') }} {{ $soma('faltas') === 1 ? 'dia' : 'dias' }} sem registro · {{ $soma('incompletos') }} incompleto(s) · {{ $soma('atencao') }} a verificar</p>
+                    <p class="hint">{{ $linhas->count() }} {{ $linhas->count() === 1 ? 'pessoa' : 'pessoas' }} · {{ $soma('faltas') }} {{ $soma('faltas') === 1 ? 'dia' : 'dias' }} sem registro · {{ $soma('incompletos') }} incompleto(s) · {{ $soma('atencao') }} a verificar · {{ $soma('abonados') }} abonado(s) · {{ $soma('em_analise') }} em análise</p>
                 </div>
                 <div class="btns">
                     <a class="btn btn-s btn-sm btn-icone" href="{{ $link(['mes' => $mes->copy()->subMonth()->format('Y-m')]) }}" aria-label="Mês anterior" title="Mês anterior"><x-icone nome="voltar" tamanho="16" /></a>
@@ -55,6 +61,7 @@
                                 <th scope="col" class="num">Sem registro</th>
                                 <th scope="col" class="num">Incompletos</th>
                                 <th scope="col" class="num" title="Atraso, saída antes do horário ou horas a menos">A verificar</th>
+                                <th scope="col" class="num" title="Dias abonados pela chefia ou pelo RH (entre parênteses, os em análise)">Abonados</th>
                                 <th scope="col" class="num">Horas</th>
                                 <th scope="col" class="num">Saldo</th>
                             </tr>
@@ -86,6 +93,7 @@
                                     <td class="num">@if ($t['faltas'])<span class="b b-err">{{ $t['faltas'] }}</span>@else<span class="muted">0</span>@endif</td>
                                     <td class="num">@if ($t['incompletos'])<span class="b b-warn">{{ $t['incompletos'] }}</span>@else<span class="muted">0</span>@endif</td>
                                     <td class="num">@if ($t['atencao'])<span class="b b-warn">{{ $t['atencao'] }}</span>@else<span class="muted">0</span>@endif</td>
+                                    <td class="num">@if ($t['abonados'])<span class="b b-ok">{{ $t['abonados'] }}</span>@else<span class="muted">0</span>@endif @if ($t['em_analise'])<span class="small muted" title="Em análise">({{ $t['em_analise'] }})</span>@endif</td>
                                     <td class="num">{{ Turnos::horas($t['trabalhado']) }}<span class="muted"> / {{ Turnos::horas($t['esperado']) }}</span></td>
                                     <td class="num" style="{{ $saldo < 0 ? 'color:#9F1D1D;font-weight:600' : '' }}">{{ $saldo > 0 ? '+' : '' }}{{ Turnos::horas($saldo) }}</td>
                                 </tr>
@@ -93,7 +101,7 @@
                         </tbody>
                     </table>
                 </div>
-                <p class="small muted" style="margin:0;padding:12px 20px 18px">Dias de férias, licença, feriado e ponto facultativo não contam. "Sem registro" e "Incompletos" ainda podem ser justificados: as justificativas e os abonos chegam na próxima entrega.</p>
+                <p class="small muted" style="margin:0;padding:12px 20px 18px">Dias de férias, licença, feriado e ponto facultativo não contam. "Sem registro", "Incompletos" e "A verificar" contam os dias ainda não abonados; o servidor justifica em Meu ponto e a chefia decide em Justificativas.</p>
             @endif
         </section>
     @endif

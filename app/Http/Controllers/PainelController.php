@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Ferias\Periodos;
+use App\Frequencia\Justificador;
 use App\Models\Afastamento;
 use App\Models\Documento;
 use App\Models\Ferias;
+use App\Models\Justificativa;
 use App\Models\Orgao;
 use App\Models\RegistroAuditoria;
 use App\Models\Servidor;
@@ -51,6 +53,7 @@ class PainelController extends Controller
                 'afastados' => Afastamento::validos()->entre($hoje, $hoje)->where($daEquipe)->count(),
             ] : null,
             'aAprovar' => $user->can('aprovar-ferias') ? Ferias::aAprovarPor($user)->count() : null,
+            'justificativasAAnalisar' => $user->can('analisar-justificativas') ? Justificativa::aAnalisarPor($user)->count() : null,
             'documentosAValidar' => $user->can('gerenciar-dossie') ? Documento::where('situacao', 'pendente')->count() : null,
             'cargos' => $user->can('cargos.ver') ? [
                 'ocupadas' => Vaga::where('situacao', 'ocupada')->count(),
@@ -138,6 +141,7 @@ class PainelController extends Controller
             'saldo' => $servidor->periodosAquisitivos->sum(fn ($p) => $p->saldo()),
             'proximas' => $servidor->ferias->filter(fn ($f) => in_array($f->situacao, ['programada', 'aprovada'], true) && $f->fim->gte(today()))->sortBy('inicio')->first(),
             'pendencias' => [...$servidor->pendencias(), ...$servidor->pendenciasDoDossie(), ...$servidor->pendenciasDeFerias()],
+            'ocorrencias' => app(Justificador::class)->ocorrencias($servidor, today()->subMonthNoOverflow()->startOfMonth(), today()->subDay(), $user)->count(),
         ];
     }
 }

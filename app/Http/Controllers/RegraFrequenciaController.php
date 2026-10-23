@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Frequencia\Turnos;
+use App\Models\Cargo;
 use App\Models\Feriado;
 use App\Models\Orgao;
 use App\Models\RegraFrequencia;
@@ -23,7 +24,9 @@ class RegraFrequenciaController extends Controller
         return view('frequencia.regras', [
             'orgao' => $orgao,
             'orgaos' => $request->user()->orgao_id === null ? Orgao::where('ativo', true)->orderBy('sigla')->get() : collect(),
-            'regra' => $orgao ? RegraFrequencia::doOrgao($orgao->id) : null,
+            'regra' => $regra = ($orgao ? RegraFrequencia::doOrgao($orgao->id) : null),
+            'cargos' => $orgao ? Cargo::where('orgao_id', $orgao->id)->where('ativo', true)->orderBy('denominacao')->get(['id', 'denominacao', 'natureza']) : collect(),
+            'dispensados' => $regra ? array_keys($regra->cargosDispensados()) : [],
             'ano' => $ano,
             'feriados' => $orgao ? Feriado::where('orgao_id', $orgao->id)->whereYear('data', $ano)->orderBy('data')->get() : collect(),
             'ip' => $request->ip(),
@@ -41,6 +44,8 @@ class RegraFrequenciaController extends Controller
             'exigir_rede' => ['boolean'],
             'redes_permitidas' => ['nullable', 'required_if:exigir_rede,1', 'string', 'max:500'],
             'fundamento' => ['nullable', 'string', 'max:255'],
+            'cargos_dispensados' => ['nullable', 'array'],
+            'cargos_dispensados.*' => ['integer', Rule::exists('cargos', 'id')->where('orgao_id', $orgao->id)],
         ], [
             'redes_permitidas.required_if' => 'Informe as redes do órgão, ou desmarque a exigência.',
         ]);
@@ -68,6 +73,7 @@ class RegraFrequenciaController extends Controller
 
         $dados['exigir_rede'] = $request->boolean('exigir_rede');
         $dados['redes_permitidas'] = $redes === [] ? null : implode(', ', $redes);
+        $dados['cargos_dispensados'] = array_values(array_unique(array_map('intval', $dados['cargos_dispensados'] ?? [])));
 
         $regra = RegraFrequencia::where('orgao_id', $orgao->id)->first() ?? new RegraFrequencia(['orgao_id' => $orgao->id]);
         $regra->fill($dados)->save();

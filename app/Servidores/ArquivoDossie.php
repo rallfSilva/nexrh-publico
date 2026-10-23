@@ -3,6 +3,7 @@
 namespace App\Servidores;
 
 use App\Models\Documento;
+use App\Models\Justificativa;
 use App\Models\Servidor;
 use finfo;
 use Illuminate\Http\UploadedFile;
@@ -24,9 +25,9 @@ class ArquivoDossie
     private const DISCO = 'local';
 
     /** @return array{arquivo_caminho: string, arquivo_nome: string, arquivo_mime: string, arquivo_tamanho: int, arquivo_hash: string} */
-    public function guardar(Servidor $servidor, UploadedFile $arquivo): array
+    public function guardar(Servidor $servidor, UploadedFile $arquivo, string $pasta = 'dossie'): array
     {
-        return $this->guardarConteudo($servidor, (string) file_get_contents($arquivo->getRealPath()), $arquivo->getClientOriginalName(), self::tipoReal($arquivo));
+        return $this->guardarConteudo($servidor, (string) file_get_contents($arquivo->getRealPath()), $arquivo->getClientOriginalName(), self::tipoReal($arquivo), $pasta);
     }
 
     /** Tipo pelo conteúdo do arquivo (assinatura), ignorando extensão e o que o navegador informou. */
@@ -38,13 +39,13 @@ class ArquivoDossie
     }
 
     /** @return array{arquivo_caminho: string, arquivo_nome: string, arquivo_mime: string, arquivo_tamanho: int, arquivo_hash: string} */
-    public function guardarConteudo(Servidor $servidor, string $conteudo, string $nomeOriginal, string $mime): array
+    public function guardarConteudo(Servidor $servidor, string $conteudo, string $nomeOriginal, string $mime, string $pasta = 'dossie'): array
     {
         if (! array_key_exists($mime, Documento::MIMES)) {
             throw new RuntimeException('Tipo de arquivo não aceito.');
         }
 
-        $caminho = "dossie/{$servidor->orgao_id}/{$servidor->id}/".Str::uuid().'.bin';
+        $caminho = "{$pasta}/{$servidor->orgao_id}/{$servidor->id}/".Str::uuid().'.bin';
         Storage::disk(self::DISCO)->put($caminho, Crypt::encryptString($conteudo));
 
         return [
@@ -56,7 +57,7 @@ class ArquivoDossie
         ];
     }
 
-    public function conteudo(Documento $documento): string
+    public function conteudo(Documento|Justificativa $documento): string
     {
         $cifrado = Storage::disk(self::DISCO)->get($documento->arquivo_caminho)
             ?? throw new RuntimeException('Arquivo do documento não encontrado.');
@@ -75,7 +76,7 @@ class ArquivoDossie
      * Imagens abrem em sandbox; PDF não, porque o leitor de PDF do Chrome não
      * funciona com sandbox.
      */
-    public function resposta(Documento $documento, bool $baixar): Response
+    public function resposta(Documento|Justificativa $documento, bool $baixar): Response
     {
         $nome = $documento->arquivo_nome;
         $cabecalhos = [

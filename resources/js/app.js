@@ -174,6 +174,13 @@ $$('[data-abrir-dialogo]').forEach((botao) => {
             const alvo = dialogo.querySelector('[data-titulo-dialogo]');
             if (alvo) alvo.textContent = botao.dataset.titulo;
         }
+        // data-preencher='{"campo": "valor"}' preenche campos do formulário do diálogo.
+        if (botao.dataset.preencher && form) {
+            Object.entries(JSON.parse(botao.dataset.preencher)).forEach(([nome, valor]) => {
+                const campo = form.querySelector(`[name="${nome}"]`);
+                if (campo) campo.value = valor;
+            });
+        }
         dialogo.showModal();
         dialogo.querySelector('input:not([type=hidden]), select, textarea')?.focus();
     });
