@@ -5,8 +5,12 @@ namespace App\Providers;
 use App\Listeners\AuditarAutenticacao;
 use App\Models\Servidor;
 use App\Models\User;
+use App\Relatorios\Catalogo;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -38,7 +42,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('ver-escala', fn (User $u) => $u->can('ferias.ver') || $u->can('ferias.aprovar'));
         Gate::define('aprovar-ferias', fn (User $u) => $u->can('ferias.gerenciar') || $u->can('ferias.aprovar'));
 
+        // Relatórios: cada um diz quem pode ver; o menu aparece para quem pode ver algum.
+        Gate::define('ver-relatorios', fn (User $u) => Catalogo::para($u) !== []);
+
         Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar') || $u->can('ferias.gerenciar'));
+
+        // API: 60 consultas por minuto por chave (ou por IP, para quem chega sem chave).
+        RateLimiter::for('api-chave', fn (Request $request) => Limit::perMinute(60)->by($request->bearerToken() ? hash('sha256', $request->bearerToken()) : $request->ip())
+            ->response(fn () => response()->json(['erro' => 'Muitas consultas seguidas. Espere um minuto.'], 429)));
 
         // Usuários de outro órgão respondem 404, como se não existissem.
         // Servidor fora do órgão ou fora da equipe da chefia responde 404.

@@ -24,8 +24,13 @@
             @if ($user->servidor()->exists() || $user->hasRole('servidor'))
                 <a href="{{ route('minha-ficha') }}" class="{{ $nav('minha-ficha*') }}"><x-icone nome="pasta" />Minha ficha</a>
             @endif
+            @can('ver-relatorios')
+                <a href="{{ route('relatorios.index') }}" class="{{ $nav('relatorios.*') }}"><x-icone nome="relatorio" />Relatórios</a>
+            @endcan
 
-            <span class="cap">Estrutura</span>
+            @if ($user->can('orgaos.gerenciar') || $user->can('unidades.ver') || $user->can('cargos.ver') || $user->can('listar-servidores') || $user->can('ver-escala'))
+                <span class="cap">Estrutura</span>
+            @endif
             @can('orgaos.gerenciar')
                 <a href="{{ route('orgaos.index') }}" class="{{ $nav('orgaos.*') }}"><x-icone nome="predio" />Órgãos</a>
             @endcan
@@ -58,12 +63,16 @@
             @can('auditoria.ver')
                 <a href="{{ route('auditoria.index') }}" class="{{ $nav('auditoria.*') }}"><x-icone nome="auditoria" />Trilha de auditoria</a>
             @endcan
+            @can('api.gerenciar')
+                <a href="{{ route('api.chaves') }}" class="{{ $nav('api.*') }}"><x-icone nome="chave" />Chaves de API</a>
+            @endcan
             <a href="{{ route('modelos.index') }}" class="{{ $nav('modelos.*') }}"><x-icone nome="planilha" />Modelos de planilha</a>
             <a href="{{ route('seguranca') }}" class="{{ $nav('seguranca') }}"><x-icone nome="escudo" />Minha segurança</a>
+            <a href="{{ route('ajuda.index') }}" class="{{ $nav('ajuda.*') }}"><x-icone nome="ajuda" />Ajuda</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 5<br>
-            Férias, afastamentos e escala do setor.
+            Fase 1 · Entrega 6<br>
+            Painel, relatórios, API e manual.
         </div>
     </aside>
 

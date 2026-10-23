@@ -2,9 +2,17 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 5 (férias, afastamentos e escala do setor). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 1, Entrega 6 (painel, relatórios, API de consulta e manual). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 6: painel, relatórios, API de consulta e manual
+
+- **Painel por perfil**: o RH e a administração veem os números do órgão (ativos, de férias hoje, cargos vagos, contas sem verificação em 2 etapas), servidores por unidade com o mínimo de presentes, férias dos próximos 12 meses, quem está de férias agora e nos próximos 30 dias, pendências de cadastro e a atividade recente. A chefia vê só a equipe; o servidor vê o próprio saldo, as próximas férias e o que falta na ficha.
+- **Relatórios** em **Relatórios**: servidores, quadro de cargos e vagas, férias, saldo de férias (com quem acumulou períodos), licenças e afastamentos, pendências e dependentes. Cada perfil vê só os que pode, com filtros, e baixa em **Excel** ou **PDF**. O CPF sai sempre mascarado e cada exportação fica na trilha de auditoria.
+- **API de consulta** (só leitura) para outros sistemas do órgão, como o ponto eletrônico: o administrador cria uma chave em **Chaves de API**, escolhe o que ela pode consultar (unidades, cargos, servidores, férias) e pode dar prazo ou revogar. Cada chave vê um órgão só, nunca recebe dados pessoais nem o tipo de licença e tem limite de 60 consultas por minuto. A chave aparece uma vez e só o hash fica guardado.
+- **Cópia de segurança no Windows**: `scripts\backup.ps1`, `scripts\restaurar.ps1` e `scripts\agendar-backup.ps1` (Agendador de Tarefas), testados no CI junto com os de Linux.
+- **Manual dentro do sistema** em **Ajuda**, por perfil, com imagens e botão para imprimir ou salvar em PDF, e o [guia da TI](docs/guia-ti.md) para instalar, atualizar e restaurar.
 
 ### Entrega 5: férias, afastamentos e escala do setor
 
@@ -121,6 +129,14 @@ O backup copia o banco de dados e os arquivos enviados, confere tudo com soma de
 0 2 * * * cd /opt/nexrh-publico && ./scripts/backup.sh >> /var/log/nexrh-backup.log 2>&1
 ```
 
+No Windows (PowerShell, na pasta do sistema):
+
+```powershell
+.\scripts\backup.ps1                 # cópia agora, em .\backups
+.\scripts\agendar-backup.ps1         # todo dia às 12h30, no Agendador de Tarefas
+.\scripts\restaurar.ps1 .\backups\nexrh_2026-10-22_123000
+```
+
 Guarde uma cópia fora do servidor. **Guarde também a `APP_KEY` do `.env`** em local seguro e separado do backup (cofre de senhas do órgão, por exemplo): CPF, documentos, dados bancários e os arquivos do dossiê ficam criptografados com ela, e sem a mesma chave o backup restaurado não consegue ler esses dados. Ela fica fora da pasta de backup de propósito, para que uma cópia vazada não sirva sozinha. A restauração pede que você digite `RESTAURAR` antes de substituir os dados atuais.
 
 ## Atualização
@@ -155,6 +171,7 @@ vendor/bin/pint        # padrão de código
 - [Requisitos da Fase 1](docs/requisitos.md)
 - [Plano de implementação](docs/plano-implementacao.md)
 - [Decisões técnicas](docs/decisoes.md)
+- [Guia da TI: instalação, atualização e cópia de segurança](docs/guia-ti.md)
 
 ## Tecnologia
 

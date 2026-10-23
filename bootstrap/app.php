@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AutenticarChaveApi;
 use App\Http\Middleware\CabecalhosSeguranca;
 use App\Http\Middleware\ExigirDoisFatores;
 use App\Http\Middleware\GarantirUsuarioAtivo;
@@ -13,12 +14,14 @@ use Spatie\Permission\Middleware\RoleMiddleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'ativo' => GarantirUsuarioAtivo::class,
+            'api.chave' => AutenticarChaveApi::class,
             'dois-fatores' => ExigirDoisFatores::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,

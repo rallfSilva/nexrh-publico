@@ -35,6 +35,10 @@
         'enviar' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
         'familia' => '<circle cx="8" cy="6" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 21v-3a5 5 0 0 1 10 0v3M13 21v-2a4 4 0 0 1 8 0v2"/>',
         'arquivar' => '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8M10 12h4"/>',
+        'relatorio' => '<path d="M3 3v18h18"/><path d="M7 16v-3M11 16V9M15 16v-5M19 16V6"/>',
+        'chave' => '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M17 6l3 3M14.5 8.5l2 2"/>',
+        'ajuda' => '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5M12 17.5h.01"/>',
+        'copiar' => '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',
         'fechar' => '<path d="M18 6 6 18M6 6l12 12"/>',
     ];
 @endphp

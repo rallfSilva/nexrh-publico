@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\AfastamentoController;
+use App\Http\Controllers\AjudaController;
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\CargoController;
+use App\Http\Controllers\ChaveApiController;
 use App\Http\Controllers\DeclaracaoController;
 use App\Http\Controllers\DependenteController;
 use App\Http\Controllers\DocumentoController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\ModeloImportacaoController;
 use App\Http\Controllers\OrgaoController;
 use App\Http\Controllers\PainelController;
 use App\Http\Controllers\RegraFeriasController;
+use App\Http\Controllers\RelatorioController;
 use App\Http\Controllers\SegurancaController;
 use App\Http\Controllers\ServidorController;
 use App\Http\Controllers\UnidadeController;
@@ -137,7 +140,22 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         Route::get('/minha-ficha/ferias/sugestoes', [MinhaFichaController::class, 'sugestoesFerias'])->middleware('throttle:60,1')->name('minha-ficha.ferias.sugestoes');
         Route::post('/minha-ficha/ferias/{ferias}/desistir', [MinhaFichaController::class, 'desistirFerias'])->whereNumber('ferias')->name('minha-ficha.ferias.desistir');
 
+        Route::middleware('can:ver-relatorios')->where(['chave' => '[a-z\-]+'])->group(function () {
+            Route::get('/relatorios', [RelatorioController::class, 'index'])->name('relatorios.index');
+            Route::get('/relatorios/{chave}', [RelatorioController::class, 'show'])->name('relatorios.show');
+            Route::get('/relatorios/{chave}/exportar.{formato}', [RelatorioController::class, 'exportar'])
+                ->whereIn('formato', ['xlsx', 'pdf'])->middleware('throttle:20,1')->name('relatorios.exportar');
+        });
+
+        Route::middleware('can:api.gerenciar')->group(function () {
+            Route::get('/chaves-api', [ChaveApiController::class, 'index'])->name('api.chaves');
+            Route::post('/chaves-api', [ChaveApiController::class, 'store'])->middleware('throttle:10,1')->name('api.chaves.store');
+            Route::post('/chaves-api/{chave}/revogar', [ChaveApiController::class, 'revogar'])->whereNumber('chave')->name('api.chaves.revogar');
+        });
+
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->middleware('can:auditoria.ver')->name('auditoria.index');
+
+        Route::get('/ajuda', AjudaController::class)->name('ajuda.index');
 
         Route::get('/modelos-importacao', [ModeloImportacaoController::class, 'index'])->name('modelos.index');
         Route::get('/modelos-importacao/{arquivo}', [ModeloImportacaoController::class, 'baixar'])
