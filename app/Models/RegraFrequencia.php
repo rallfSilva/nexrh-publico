@@ -11,10 +11,11 @@ use Symfony\Component\HttpFoundation\IpUtils;
 /**
  * Regras de frequência do órgão, ajustáveis pelo RH. Enquanto o órgão não grava
  * as suas, valem as provisórias: o horário sai da carga da ficha (6h corridas das
- * 7h30 às 13h30, ou 8h das 8h às 12h e das 14h às 18h), 10 minutos de tolerância
- * e registro só de dentro da rede do órgão.
+ * 7h30 às 13h30, ou 8h das 8h às 12h e das 14h às 18h), 15 minutos de tolerância,
+ * registro só de dentro da rede do órgão e dispensa do ponto para secretário,
+ * adjunto e coordenadores.
  */
-#[Fillable(['orgao_id', 'turnos_6h', 'turnos_8h', 'tolerancia_minutos', 'exigir_rede', 'redes_permitidas', 'fundamento'])]
+#[Fillable(['orgao_id', 'turnos_6h', 'turnos_8h', 'tolerancia_minutos', 'exigir_rede', 'redes_permitidas', 'cargos_dispensados', 'fundamento'])]
 class RegraFrequencia extends Model
 {
     use Auditable, BelongsToOrgao;
@@ -27,11 +28,18 @@ class RegraFrequencia extends Model
     public const PADRAO = [
         'turnos_6h' => [['07:30', '13:30']],
         'turnos_8h' => [['08:00', '12:00'], ['14:00', '18:00']],
-        'tolerancia_minutos' => 10,
+        'tolerancia_minutos' => 15,
         'exigir_rede' => true,
         'redes_permitidas' => self::REDES_PADRAO,
+        'cargos_dispensados' => null,
         'fundamento' => 'Regras provisórias, a confirmar com a norma de frequência do órgão.',
     ];
+
+    /** Sem escolha gravada, ficam dispensados os cargos com estes começos de nome. */
+    public const CARGOS_DISPENSADOS_PADRAO = ['Secretári', 'Coordenador'];
+
+    /** @var array<int, string>|null cargo_id => denominação, calculado uma vez */
+    private ?array $dispensados = null;
 
     protected function casts(): array
     {
@@ -40,6 +48,7 @@ class RegraFrequencia extends Model
             'turnos_8h' => 'array',
             'tolerancia_minutos' => 'integer',
             'exigir_rede' => 'boolean',
+            'cargos_dispensados' => 'array',
         ];
     }
 
@@ -66,6 +75,31 @@ class RegraFrequencia extends Model
     public function turnosPara(Servidor $servidor): array
     {
         return preg_match('/^\s*8\s*h/i', (string) $servidor->carga_horaria) ? $this->turnos_8h : $this->turnos_6h;
+    }
+
+    /** @return array<int, string> cargo_id => denominação dos cargos dispensados do ponto */
+    public function cargosDispensados(): array
+    {
+        if ($this->dispensados !== null) {
+            return $this->dispensados;
+        }
+
+        $query = Cargo::where('orgao_id', $this->orgao_id);
+        if ($this->cargos_dispensados !== null) {
+            $query->whereIn('id', $this->cargos_dispensados ?: [0]);
+        } else {
+            $query->where(fn ($q) => collect(self::CARGOS_DISPENSADOS_PADRAO)->each(fn ($inicio) => $q->orWhere('denominacao', 'ilike', $inicio.'%')));
+        }
+
+        return $this->dispensados = $query->orderBy('denominacao')->pluck('denominacao', 'id')->all();
+    }
+
+    /** Cargo que dispensa o servidor do ponto, ou null. */
+    public function dispensaPeloCargo(Servidor $servidor): ?string
+    {
+        $cargoId = $servidor->vaga?->cargo_id;
+
+        return $cargoId ? ($this->cargosDispensados()[$cargoId] ?? null) : null;
     }
 
     protected function generoAuditoria(): string

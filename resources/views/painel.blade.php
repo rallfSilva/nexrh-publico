@@ -45,6 +45,10 @@
                 @endphp
                 <b>{{ $nPend ? $nPend.' '.($nPend === 1 ? 'pendência' : 'pendências') : 'Tudo em dia' }}</b>
             </div>
+            <div class="fx">
+                <span class="lbl">Meu ponto</span>
+                <b>{{ $minha['ocorrencias'] ? $minha['ocorrencias'].' '.($minha['ocorrencias'] === 1 ? 'ocorrência' : 'ocorrências').' para justificar' : 'Nada para justificar' }}</b>
+            </div>
             <div class="btns">
                 @if ($minha['saldo'] > 0)
                     <a href="{{ route('minha-ficha.ferias.create') }}" class="btn btn-s"><x-icone nome="sol" />Pedir férias</a>
@@ -82,6 +86,13 @@
                 <span class="lbl"><span class="chip {{ $aAprovar ? 'c-warn' : 'c-teal' }}"><x-icone nome="ok" /></span>Férias a aprovar</span>
                 <span class="val">{{ $aAprovar }}</span>
                 <span class="foot">{{ $aAprovar ? 'pedidos esperando decisão' : 'nenhum pedido esperando' }}</span>
+            </a>
+        @endif
+        @if ($justificativasAAnalisar !== null)
+            <a href="{{ route('justificativas.index') }}" class="card kpi kpi-link">
+                <span class="lbl"><span class="chip {{ $justificativasAAnalisar ? 'c-warn' : 'c-teal' }}"><x-icone nome="frequencia" /></span>Justificativas de ponto</span>
+                <span class="val">{{ $justificativasAAnalisar }}</span>
+                <span class="foot">{{ $justificativasAAnalisar ? 'esperando abono ou recusa' : 'nenhuma esperando' }}</span>
             </a>
         @endif
         @if ($documentosAValidar !== null)

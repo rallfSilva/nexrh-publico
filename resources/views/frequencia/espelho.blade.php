@@ -1,5 +1,6 @@
 @use('App\Frequencia\Turnos')
 @use('App\Models\Jornada')
+@use('App\Models\Justificativa')
 @php
     $corrigir = auth()->user()->can('frequencia.gerenciar');
     $navegar = fn ($m) => route('frequencia.espelho', [$servidor, 'mes' => $m->format('Y-m')]);
@@ -16,6 +17,7 @@
         @if ($corrigir)
             <div class="btns nao-imprimir">
                 <button type="button" class="btn btn-s" data-abrir-dialogo="dialogo-incluir"><x-icone nome="mais" />Incluir marcação</button>
+                <button type="button" class="btn btn-s" data-abrir-dialogo="dialogo-abonar"><x-icone nome="ok" />Abonar dias</button>
                 <button type="button" class="btn btn-s" data-abrir-dialogo="dialogo-jornada"><x-icone nome="relogio" />Alterar jornada</button>
             </div>
         @endif
@@ -29,6 +31,8 @@
             <div class="small muted">
                 @if ($jornadaAtual->exists)
                     Desde {{ $jornadaAtual->inicio->format('d/m/Y') }}{{ $jornadaAtual->observacao ? ' · '.$jornadaAtual->observacao : '' }}
+                @elseif ($jornadaAtual->observacao)
+                    {{ $jornadaAtual->observacao }} Os cargos dispensados ficam em Regras e feriados; para exigir o ponto desta pessoa, altere a jornada.
                 @else
                     Padrão do órgão pela carga da ficha ({{ $servidor->carga_horaria ?: 'sem carga informada' }}). Tolerância de {{ $regra->tolerancia_minutos }} minutos.
                 @endif
@@ -91,7 +95,7 @@
                 <input type="hidden" name="mes" value="{{ $mes->format('Y-m') }}">
                 <div><h2 id="t-jornada" style="margin:0;font-size:18px">Alterar jornada</h2><p class="small muted" style="margin:6px 0 0">Vale a partir da data escolhida. A jornada anterior termina na véspera, e os meses passados continuam com a jornada da época.</p></div>
                 <x-lista nome="modalidade" rotulo="Modalidade" :opcoes="Jornada::MODALIDADES" :valor="$base->modalidade" vazio="Escolha" obrigatorio />
-                <x-campo nome="turnos" rotulo="Horário" :valor="Turnos::campo($base->turnos)" maxlength="60" placeholder="07:30-13:30" ajuda="Um ou mais turnos: 07:30-13:30 ou 08:00-12:00, 14:00-18:00. Só para jornada presencial." />
+                <x-campo nome="turnos" rotulo="Horário" :valor="Turnos::campo($base->turnos ?? $regra->turnosPara($servidor))" maxlength="60" placeholder="07:30-13:30" ajuda="Um ou mais turnos: 07:30-13:30 ou 08:00-12:00, 14:00-18:00. Só para jornada presencial." />
                 <fieldset class="campo">
                     <legend class="rotulo">Dias de trabalho <span aria-hidden="true" style="color:#9F1D1D">*</span></legend>
                     <div class="dias-semana">
@@ -112,7 +116,55 @@
             </form>
         </dialog>
 
-        @if ($reabrir && $errors->any() && in_array($reabrir, ['dialogo-incluir', 'dialogo-anular', 'dialogo-jornada'], true))
+        <dialog class="modal" id="dialogo-abonar" aria-labelledby="t-abonar">
+            <form method="POST" action="{{ route('frequencia.abonar', $servidor) }}" enctype="multipart/form-data" novalidate>
+                @csrf
+                <input type="hidden" name="dialogo" value="dialogo-abonar">
+                <div><h2 id="t-abonar" style="margin:0;font-size:18px">Abonar dias</h2><p class="small muted" style="margin:6px 0 0">Para falta, atraso ou registro esquecido com motivo aceito pelo RH. O dia passa a contar com a jornada inteira, e quem abonou fica registrado. Se o servidor já enviou a justificativa, decida em Justificativas.</p></div>
+                @php
+                    $erroAbono = fn ($campo) => $reabrir === 'dialogo-abonar' ? $errors->first($campo) : null;
+                @endphp
+                <div class="form-grid">
+                    <div class="campo">
+                        <label for="campo-abono-tipo">Motivo <span aria-hidden="true" style="color:#9F1D1D">*</span></label>
+                        <select id="campo-abono-tipo" name="tipo" class="input" required>
+                            <option value="">Escolha</option>
+                            @foreach (Justificativa::TIPOS as $v => [$r])
+                                <option value="{{ $v }}" @selected($reabrir === 'dialogo-abonar' && old('tipo') === $v)>{{ $r }}</option>
+                            @endforeach
+                        </select>
+                        @if ($erroAbono('tipo'))<span class="erro">{{ $erroAbono('tipo') }}</span>@endif
+                    </div>
+                    <div class="campo">
+                        <label for="campo-abono-inicio">De <span aria-hidden="true" style="color:#9F1D1D">*</span></label>
+                        <input id="campo-abono-inicio" name="inicio" type="date" class="input" required value="{{ $reabrir === 'dialogo-abonar' ? old('inicio') : today()->subDay()->format('Y-m-d') }}">
+                        @if ($erroAbono('inicio'))<span class="erro">{{ $erroAbono('inicio') }}</span>@endif
+                    </div>
+                    <div class="campo">
+                        <label for="campo-abono-fim">Até</label>
+                        <input id="campo-abono-fim" name="fim" type="date" class="input" value="{{ $reabrir === 'dialogo-abonar' ? old('fim') : '' }}">
+                        <span class="ajuda">Vários dias, só para atestado.</span>
+                        @if ($erroAbono('fim'))<span class="erro">{{ $erroAbono('fim') }}</span>@endif
+                    </div>
+                </div>
+                <div class="campo">
+                    <label for="campo-motivo-abono">Descrição <span aria-hidden="true" style="color:#9F1D1D">*</span></label>
+                    <textarea id="campo-motivo-abono" name="motivo" class="input" rows="3" maxlength="1000" required style="padding-top:10px;min-height:80px" placeholder="Ex.: convocação para audiência, conforme ofício nº">{{ $reabrir === 'dialogo-abonar' ? old('motivo') : '' }}</textarea>
+                    @if ($erroAbono('motivo'))<span class="erro">{{ $erroAbono('motivo') }}</span>@endif
+                </div>
+                <div class="campo">
+                    <label for="campo-arquivo-abono">Documento <span class="muted" style="font-weight:500">(opcional)</span></label>
+                    <input id="campo-arquivo-abono" name="arquivo" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" class="input" style="padding-top:9px">
+                    @if ($erroAbono('arquivo'))<span class="erro">{{ $erroAbono('arquivo') }}</span>@endif
+                </div>
+                <div class="form-acoes">
+                    <button type="button" class="btn btn-s" data-fechar-dialogo>Voltar</button>
+                    <button type="submit" class="btn btn-p">Abonar</button>
+                </div>
+            </form>
+        </dialog>
+
+        @if ($reabrir && $errors->any() && in_array($reabrir, ['dialogo-incluir', 'dialogo-anular', 'dialogo-jornada', 'dialogo-abonar'], true))
             <script type="module">document.getElementById(@json($reabrir)).showModal();</script>
         @endif
     @endif

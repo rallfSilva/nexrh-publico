@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Frequencia\Espelho;
+use App\Frequencia\Justificador;
 use App\Frequencia\Marcador;
+use App\Models\Justificativa;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-/** O próprio servidor registra entrada e saída e confere o espelho do mês. */
+/** O próprio servidor registra entrada e saída, confere o espelho e justifica as ocorrências. */
 class MeuPontoController extends Controller
 {
-    public function show(Request $request, Marcador $marcador): View
+    public function show(Request $request, Marcador $marcador, Justificador $justificador): View
     {
         $servidor = $request->user()->servidor;
 
@@ -31,6 +33,10 @@ class MeuPontoController extends Controller
             'hoje' => $hoje,
             'impedimento' => $marcador->impedimento($servidor, $request->ip(), $hojeEspelho),
             'jornadaHoje' => $hojeEspelho->jornadaEm($servidor, today()),
+            // Prazo para justificar: o mês atual e o anterior.
+            'ocorrencias' => $justificador->ocorrencias($servidor, today()->subMonthNoOverflow()->startOfMonth(), today()->subDay(), $request->user())->sortByDesc('data')->values(),
+            'justificativas' => Justificativa::with('analisadoPor:id,name')->where('servidor_id', $servidor->id)->where('situacao', '!=', 'retirada')
+                ->latest('id')->limit(6)->get(),
         ]);
     }
 

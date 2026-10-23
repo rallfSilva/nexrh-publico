@@ -112,6 +112,22 @@ Ninguém precisa cadastrar jornada para começar: a carga horária da ficha (6h 
 
 O relógio de ponto (REP) entra pelo arquivo AFD, que todos os modelos exportam, nos leiautes da Portaria 671/2021 (CPF) e da 1.510/2009 (PIS). Só as marcações (registro tipo 3) são lidas. A mesma pessoa no mesmo minuto é uma marcação só, então o arquivo do mês pode ser enviado de novo a cada semana sem duplicar. Marcações com data no futuro bloqueiam a importação, porque indicam relógio com a hora errada.
 
+## Justificativa abona o dia inteiro
+
+Dia abonado conta como trabalhado, com a jornada inteira, no espelho e no saldo, sem distinguir atraso de falta. A SELC não usa banco de horas nem compensação. O servidor justifica até o fim do mês seguinte; depois, só o RH abona. Atestado vale para até 15 dias seguidos; mais que isso é licença, registrada pelo RH como afastamento.
+
+## Quem decide a justificativa
+
+A chefia do setor (e das chefias acima dela) decide as justificativas da equipe; o RH decide qualquer uma. Ninguém decide a própria: a do chefe vai para a chefia de cima ou para o RH, como nas férias. Recusa sempre tem motivo, visto pelo servidor, que pode justificar de novo.
+
+## Atestado tem dado de saúde
+
+O motivo e o anexo da justificativa podem trazer dado de saúde (LGPD, art. 11). Por isso a trilha registra só que mudaram ("[protegido]"), o anexo fica criptografado como os documentos do dossiê, cada abertura é registrada, e só o próprio servidor, quem decide e o RH abrem o anexo. A tela pede o atestado sem o CID quando possível.
+
+## Dispensa do ponto pelo cargo
+
+A SELC informou que secretário, secretário adjunto e coordenadores não registram ponto. Em vez de gravar uma jornada para cada um, as regras do órgão guardam a lista de cargos dispensados (de início, os cargos cujo nome começa com "Secretári" ou "Coordenador"). A jornada gravada da pessoa, quando existe, vale mais que a dispensa pelo cargo.
+
 ## Feriados sugeridos, conferidos pelo RH
 
 O sistema calcula os feriados nacionais (inclusive os móveis, pela data da Páscoa) e os de Roraima e Boa Vista, mas só os grava quando o RH pede, ano a ano, para conferir com o decreto do Estado. Carnaval, Corpus Christi e Dia do Servidor entram como ponto facultativo. Feriado e ponto facultativo não contam como dia de trabalho no espelho.

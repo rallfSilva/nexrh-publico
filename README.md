@@ -2,9 +2,18 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 2, Entrega 7 (frequência: jornada e registro do ponto). A Fase 1 (entregas 1 a 6) está concluída. Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 2, Entrega 8 (frequência: ocorrências e abonos). A Fase 1 (entregas 1 a 6) está concluída. Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 8: ocorrências e abonos
+
+- **Ocorrências apontadas sozinhas**: falta, atraso, saída antecipada e registro incompleto aparecem para o servidor em **Meu ponto › Ocorrências para justificar**, no dia seguinte, e no painel.
+- **Justificativa pelo servidor**: atestado médico (de um ou vários dias, até 15), declaração de comparecimento, serviço externo, esquecimento de registro ou outro motivo, com anexo obrigatório para atestado e declaração. O anexo fica criptografado, como no dossiê. O prazo é o mês atual e o anterior; o servidor retira enquanto está em análise.
+- **Abono ou recusa pela chefia** em **Frequência › Justificativas**, com o número no menu e no painel. Recusa pede motivo, que o servidor vê. Ninguém decide a própria justificativa. Dia abonado conta a jornada inteira no espelho e no saldo.
+- **Abono direto pelo RH** no espelho, inclusive para dias futuros (convocação marcada).
+- **Respostas da SELC aplicadas**: tolerância de **15 minutos**; **secretário, adjunto e coordenadores dispensados do ponto** pelo cargo (lista ajustável em **Regras e feriados**); sem banco de horas nem compensação.
+- O motivo e o anexo podem ter dado de saúde: a trilha de auditoria registra o envio, mas não o conteúdo, e o auditor não abre o anexo.
 
 ### Entrega 7: frequência, jornada e registro do ponto
 
@@ -15,7 +24,7 @@ Gestão de pessoas para a administração pública: estrutura do órgão, usuár
 - **Ajustes pelo RH, sem apagar nada**: incluir marcação esquecida e anular marcação errada, sempre com motivo. A anulada continua no espelho, riscada, e tudo fica na trilha de auditoria.
 - **Calendário de feriados** por órgão, com um botão que inclui os feriados nacionais e de Roraima do ano (Carnaval, Paixão, Corpus Christi, 9 de julho, 5 de outubro, Dia do Servidor e outros).
 - **Importação do relógio de ponto** (arquivo AFD das Portarias 671/2021 e 1.510/2009), identificando o servidor pelo CPF ou PIS, com prévia e sem duplicar marcações. Exemplo **fictício** em `resources/modelos-importacao/exemplo_ponto_ficticio.txt` (386 marcações de 10 servidores, 3 com erro de propósito).
-- Justificativas, abonos e o fechamento do mês ficam para as entregas 8 e 9.
+- O fechamento do mês fica para a entrega 9.
 
 ### Entrega 6: painel, relatórios, API de consulta e manual
 

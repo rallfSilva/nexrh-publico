@@ -1,5 +1,6 @@
-{{-- Espelho do ponto de um mês. Recebe $calculo (Espelho::calcular), $mes, $navegar (fn (Carbon) => url)
-     e $corrigir (o RH pode anular marcações; o diálogo de anulação fica na página). --}}
+{{-- Espelho do ponto de um mês. Recebe $calculo (Espelho::calcular), $mes, $navegar (fn (Carbon) => url),
+     $corrigir (o RH anula marcações e abona dias; os diálogos ficam na página) e $justificar
+     (o próprio servidor, que justifica as ocorrências). --}}
 @use('App\Frequencia\Espelho')
 @use('App\Frequencia\Turnos')
 @use('App\Models\RegistroPonto')
@@ -7,6 +8,7 @@
     $t = $calculo['totais'];
     $semana = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
     $corrigir ??= false;
+    $justificar ??= false;
     $saldo = $t['trabalhado'] - $t['esperado'];
 @endphp
 <section class="card card-flush espelho">
@@ -29,6 +31,7 @@
         <div class="{{ $t['faltas'] ? 'ruim' : '' }}"><dt>Sem registro</dt><dd>{{ $t['faltas'] }}</dd></div>
         <div class="{{ $t['incompletos'] ? 'atencao' : '' }}"><dt>Incompletos</dt><dd>{{ $t['incompletos'] }}</dd></div>
         <div class="{{ $t['atencao'] ? 'atencao' : '' }}"><dt>A verificar</dt><dd>{{ $t['atencao'] }}</dd></div>
+        <div><dt>Abonados</dt><dd>{{ $t['abonados'] }}@if ($t['em_analise'])<small>{{ $t['em_analise'] }} em análise</small>@endif</dd></div>
         <div><dt>Horas no mês</dt><dd>{{ Turnos::horas($t['trabalhado']) }} <small>de {{ Turnos::horas($t['esperado']) }}</small></dd></div>
         <div class="{{ $saldo < 0 ? 'ruim' : '' }}"><dt>Saldo</dt><dd>{{ $saldo > 0 ? '+' : '' }}{{ Turnos::horas($saldo) }}</dd></div>
     </dl>
@@ -75,11 +78,23 @@
                         <td>
                             @if ($rotulo !== '')<span class="b {{ $selo }}">{{ in_array($d['situacao'], ['feriado', 'facultativo'], true) ? $rotulo.': '.$d['titulo'] : (in_array($d['situacao'], ['ferias', 'afastamento'], true) ? $d['titulo'] : $rotulo) }}</span>@endif
                             @foreach ($d['alertas'] as $alerta)<div class="small" style="color:#9A3412;margin-top:3px">{{ $alerta }}</div>@endforeach
+                            @if ($j = $d['justificativa'])
+                                <div class="just-dia">
+                                    @if ($j->situacao !== 'abonada')<span class="b {{ $j->selo()[1] }}">{{ $j->selo()[0] }}</span>@endif
+                                    <span>{{ $j->rotuloTipo() }}{{ $j->situacao === 'abonada' && $j->analisadoPor ? ', por '.$j->analisadoPor->name : '' }}</span>
+                                    @if ($j->situacao === 'recusada' && $j->motivo_decisao)<span class="motivo">Motivo: {{ $j->motivo_decisao }}</span>@endif
+                                </div>
+                            @endif
+                            @if ($d['justificavel'] && $justificar)
+                                <a class="btn btn-s btn-xs nao-imprimir" href="{{ route('justificativas.create', ['data' => $d['data']->format('Y-m-d')]) }}"><x-icone nome="editar" tamanho="14" />Justificar</a>
+                            @elseif ($d['justificavel'] && $corrigir)
+                                <button type="button" class="btn btn-s btn-xs nao-imprimir" data-abrir-dialogo="dialogo-abonar" data-preencher='{"inicio":"{{ $d['data']->format('Y-m-d') }}","fim":"{{ $d['data']->format('Y-m-d') }}"}'><x-icone nome="ok" tamanho="14" />Abonar</button>
+                            @endif
                         </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-    <p class="small muted esp-nota">Marcações com <b>RH</b> foram incluídas pelo RH; com <b>R</b>, vieram do relógio de ponto. Marcações riscadas foram anuladas, com motivo. Passe o mouse sobre a marcação para ver os detalhes.</p>
+    <p class="small muted esp-nota">Marcações com <b>RH</b> foram incluídas pelo RH; com <b>R</b>, vieram do relógio de ponto. Marcações riscadas foram anuladas, com motivo. Dia abonado conta a jornada inteira. Passe o mouse sobre a marcação para ver os detalhes.</p>
 </section>

@@ -52,16 +52,19 @@ class Jornada extends Model
         return $this->belongsTo(User::class, 'registrado_por');
     }
 
-    /** Jornada padrão (não gravada) pela carga da ficha. */
+    /** Jornada padrão (não gravada) pela carga da ficha, ou dispensa do ponto pelo cargo. */
     public static function padrao(Servidor $servidor, RegraFrequencia $regra): self
     {
+        $cargo = $regra->dispensaPeloCargo($servidor);
+
         return new static([
             'orgao_id' => $servidor->orgao_id,
             'servidor_id' => $servidor->id,
-            'modalidade' => 'presencial',
-            'turnos' => $regra->turnosPara($servidor),
+            'modalidade' => $cargo ? 'dispensado' : 'presencial',
+            'turnos' => $cargo ? null : $regra->turnosPara($servidor),
             'dias_semana' => [1, 2, 3, 4, 5],
             'inicio' => Carbon::create(2000),
+            'observacao' => $cargo ? 'Dispensado pelo cargo: '.$cargo.'.' : null,
         ]);
     }
 

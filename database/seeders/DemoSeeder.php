@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Frequencia\Justificador;
 use App\Frequencia\Turnos;
 use App\Importacao\AnalisadorAfastamentos;
 use App\Importacao\AnalisadorDependentes;
@@ -21,6 +22,7 @@ use App\Models\Feriado;
 use App\Models\Ferias;
 use App\Models\Importacao;
 use App\Models\Jornada;
+use App\Models\Justificativa;
 use App\Models\Orgao;
 use App\Models\RegistroPonto;
 use App\Models\RegraFrequencia;
@@ -107,6 +109,7 @@ class DemoSeeder extends Seeder
         $this->dossie($selc, $criados['rh.selc@nexrh.local']);
         $this->afastamentosEFerias($selc, $criados['rh.selc@nexrh.local']);
         $this->frequencia($selc, $criados['rh.selc@nexrh.local']);
+        $this->justificativas($selc, $criados['rh.selc@nexrh.local'], $criados['chefia.dti@nexrh.local']);
 
         $outroGab = $this->unidade($outro, 'GAB', 'Gabinete', 'gabinete', null, null, 1);
         $this->unidade($outro, 'DAF', 'Diretoria Administrativa e Financeira', 'diretoria', $outroGab, null, 2);
@@ -364,6 +367,57 @@ class DemoSeeder extends Seeder
 
         foreach (array_chunk($linhas, 1000) as $lote) {
             RegistroPonto::insertOrIgnore($lote);
+        }
+    }
+
+    /**
+     * Justificativas de demonstração na DTI: três em análise para a chefia decidir,
+     * uma abonada e uma recusada. A servidora Ana fica sem nenhuma, para o teste de
+     * justificar como servidor.
+     */
+    private function justificativas(Orgao $orgao, User $rh, User $chefe): void
+    {
+        if (Justificativa::withoutGlobalScopes()->where('orgao_id', $orgao->id)->exists()) {
+            return;
+        }
+
+        $dti = Unidade::withoutGlobalScopes()->where('orgao_id', $orgao->id)->where('sigla', 'DTI')->first();
+        $equipe = Servidor::withoutGlobalScopes()->where('unidade_id', $dti?->id)->where('situacao', 'ativo')
+            ->where(fn ($q) => $q->whereNull('cpf_hash')->orWhere('cpf_hash', '!=', Cpf::hash('52998224725')))->orderBy('nome')->get();
+        $justificador = app(Justificador::class);
+        $pdf = Pdf::loadHTML('<div style="font-family:DejaVu Sans,sans-serif;padding:40px;color:#0F2A3A">'
+            .'<p style="color:#9F1D1D;font-weight:bold;font-size:22px;border:3px solid #9F1D1D;padding:10px;text-align:center">DOCUMENTO FICTÍCIO · DEMONSTRAÇÃO</p>'
+            .'<h1 style="color:#1E5470">Declaração de comparecimento</h1>'
+            .'<p>Declaramos, para fins de demonstração do NexRH Público, que a pessoa compareceu a consulta. Sem validade e sem dados de pessoas reais.</p></div>')
+            ->setPaper('a4')->setOption('isFontSubsettingEnabled', true)->output();
+
+        // [situação do dia, tipo, motivo, decisão, com anexo]
+        $roteiro = [
+            ['incompleto', 'esquecimento', 'Saí às 13:30 e esqueci de registrar a saída. (demonstração)', 'pendente', false],
+            ['atencao', 'servico_externo', 'Reunião no Palácio do Governo no início da manhã, a pedido da chefia. (demonstração)', 'pendente', false],
+            ['falta', 'declaracao', 'Acompanhei minha mãe em consulta médica. (demonstração)', 'pendente', true],
+            ['incompleto', 'esquecimento', 'Esqueci de registrar a saída. (demonstração)', 'abonada', false],
+            ['atencao', 'outro', 'Trânsito na BR-174. (demonstração)', 'recusada', false],
+        ];
+        $ocorrencias = $equipe->mapWithKeys(fn (Servidor $s) => [$s->id => $justificador->ocorrencias($s, today()->subMonthNoOverflow()->startOfMonth(), today()->subDay())]);
+
+        foreach ($roteiro as [$situacaoDia, $tipo, $motivo, $situacao, $anexo]) {
+            $s = $equipe->first(fn (Servidor $s) => $ocorrencias[$s->id]->contains('situacao', $situacaoDia));
+            if (! $s) {
+                continue;
+            }
+            $dia = $ocorrencias[$s->id]->firstWhere('situacao', $situacaoDia);
+            $equipe = $equipe->reject(fn ($x) => $x->id === $s->id);
+            Justificativa::create([
+                'orgao_id' => $orgao->id, 'servidor_id' => $s->id, 'inicio' => $dia['data'], 'fim' => $dia['data'],
+                'tipo' => $tipo, 'ocorrencia' => $justificador->descrever(collect([$dia])), 'motivo' => $motivo, 'situacao' => $situacao,
+                'horarios' => $tipo === 'esquecimento' ? 'saída às 13:30' : null,
+                'enviado_por' => $s->user_id, 'enviado_pelo_servidor' => true,
+                'analisado_por' => $situacao === 'pendente' ? null : $chefe->id,
+                'analisado_em' => $situacao === 'pendente' ? null : now(),
+                'motivo_decisao' => $situacao === 'recusada' ? 'Atraso por trânsito não é abonado. (demonstração)' : null,
+                ...($anexo ? app(ArquivoDossie::class)->guardarConteudo($s, $pdf, 'declaracao_comparecimento.pdf', 'application/pdf', 'frequencia') : []),
+            ]);
         }
     }
 

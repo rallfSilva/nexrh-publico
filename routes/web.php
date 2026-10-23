@@ -11,6 +11,7 @@ use App\Http\Controllers\DocumentoController;
 use App\Http\Controllers\FeriasController;
 use App\Http\Controllers\FrequenciaController;
 use App\Http\Controllers\ImportacaoController;
+use App\Http\Controllers\JustificativaController;
 use App\Http\Controllers\MeuPontoController;
 use App\Http\Controllers\MinhaFichaController;
 use App\Http\Controllers\ModeloImportacaoController;
@@ -146,6 +147,15 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         // Frequência: o servidor registra o próprio ponto; RH, auditoria e chefia (equipe) veem o espelho; o RH corrige.
         Route::get('/meu-ponto', [MeuPontoController::class, 'show'])->name('meu-ponto');
         Route::post('/meu-ponto', [MeuPontoController::class, 'registrar'])->middleware('throttle:6,1')->name('meu-ponto.registrar');
+        Route::get('/meu-ponto/justificar', [JustificativaController::class, 'create'])->name('justificativas.create');
+        Route::post('/meu-ponto/justificativas', [JustificativaController::class, 'store'])->middleware('throttle:20,1')->name('justificativas.store');
+        Route::post('/meu-ponto/justificativas/{justificativa}/retirar', [JustificativaController::class, 'retirar'])->whereNumber('justificativa')->name('justificativas.retirar');
+        Route::get('/justificativas/{justificativa}/arquivo', [JustificativaController::class, 'arquivo'])->whereNumber('justificativa')->middleware('throttle:60,1')->name('justificativas.arquivo');
+        Route::middleware('can:analisar-justificativas')->whereNumber('justificativa')->group(function () {
+            Route::get('/frequencia/justificativas', [JustificativaController::class, 'index'])->name('justificativas.index');
+            Route::post('/frequencia/justificativas/{justificativa}/abonar', [JustificativaController::class, 'abonar'])->name('justificativas.abonar');
+            Route::post('/frequencia/justificativas/{justificativa}/recusar', [JustificativaController::class, 'recusar'])->name('justificativas.recusar');
+        });
         Route::middleware('can:ver-frequencia')->group(function () {
             Route::get('/frequencia', [FrequenciaController::class, 'index'])->name('frequencia.index');
             Route::get('/servidores/{servidor}/frequencia', [FrequenciaController::class, 'espelho'])->whereNumber('servidor')->name('frequencia.espelho');
@@ -159,6 +169,7 @@ Route::middleware(['auth', 'ativo'])->group(function () {
             Route::post('/servidores/{servidor}/frequencia/registros', [FrequenciaController::class, 'incluir'])->name('frequencia.incluir');
             Route::post('/servidores/{servidor}/frequencia/registros/{registro}/anular', [FrequenciaController::class, 'anular'])->name('frequencia.anular');
             Route::post('/servidores/{servidor}/frequencia/jornada', [FrequenciaController::class, 'jornada'])->name('frequencia.jornada');
+            Route::post('/servidores/{servidor}/frequencia/abonos', [JustificativaController::class, 'abonarDireto'])->name('frequencia.abonar');
         });
 
         Route::middleware('can:ver-relatorios')->where(['chave' => '[a-z\-]+'])->group(function () {
