@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Frequencia\Fechamento;
 use App\Frequencia\Justificador;
 use App\Models\Documento;
 use App\Models\Justificativa;
@@ -52,6 +53,9 @@ class JustificativaController extends Controller
     {
         abort_unless($justificativa->servidor_id === $request->user()->servidor?->id, 404);
         abort_unless($justificativa->situacao === 'pendente', 409);
+        if ($fechado = Fechamento::primeiroFechadoEntre($justificativa->servidor, $justificativa->inicio, $justificativa->fim)) {
+            throw Fechamento::erroMesFechado('fechamento', $fechado);
+        }
 
         $justificativa->update(['situacao' => 'retirada']);
 
@@ -125,6 +129,9 @@ class JustificativaController extends Controller
     private function podeDecidir(User $user, Justificativa $justificativa): void
     {
         abort_unless(Justificativa::aAnalisarPor($user)->whereKey($justificativa->id)->exists(), $justificativa->situacao === 'pendente' ? 403 : 409);
+        if ($fechado = Fechamento::primeiroFechadoEntre($justificativa->servidor, $justificativa->inicio, $justificativa->fim)) {
+            throw Fechamento::erroMesFechado('fechamento', $fechado);
+        }
     }
 
     /** @return array<string, mixed> */

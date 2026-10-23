@@ -2,9 +2,19 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 2, Entrega 8 (frequência: ocorrências e abonos). A Fase 1 (entregas 1 a 6) está concluída. Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 2, Entrega 9 (frequência: fechamento do mês e boletim). A Fase 1 (entregas 1 a 6) está concluída. Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 9: fechamento do mês e boletim
+
+- **Fechamento do mês** em **Frequência › Fechamento do mês**: a chefia **confere** o espelho da equipe (com observação para o RH, se quiser) e o RH **fecha** o mês de cada setor, ou de todos os conferidos de uma vez. O prazo é o **5º dia útil do mês seguinte** (sem fins de semana e feriados), mostrado na tela e no painel.
+- Setor com justificativa **em análise** não pode ser conferido nem fechado: a chefia decide antes. Dias sem justificativa entram como falta no boletim.
+- **Mês fechado não muda mais**: marcação, anulação, jornada, justificativa, abono e importação do relógio são recusados para o mês, e o espelho mostra o aviso "Mês fechado". O RH **reabre** com motivo, corrige e fecha de novo; tudo fica na trilha de auditoria.
+- **Boletim de frequência** (em **Relatórios** e na tela de fechamento), em **PDF** e **Excel**, por setor ou do órgão: dias de trabalho, com registro, faltas, abonados, incompletos, a verificar, férias, afastamentos, horas e saldo, e a situação do mês. Mês fechado sai do boletim guardado no fechamento, igual ao que foi fechado.
+- **Painel**: o RH vê quantos setores já fecharam o mês anterior, e a chefia, se já conferiu, com o prazo.
+- **API de consulta**: novo escopo **frequência** (`GET /api/v1/frequencia?mes=AAAA-MM`), com o boletim só dos setores já fechados, sem motivos nem anexos, para a folha ou outro sistema do Estado.
+- Os scripts de cópia de segurança e restauração passam a valer sempre para a pasta do NexRH onde estão, de qualquer pasta em que sejam chamados.
 
 ### Entrega 8: ocorrências e abonos
 
@@ -24,7 +34,6 @@ Gestão de pessoas para a administração pública: estrutura do órgão, usuár
 - **Ajustes pelo RH, sem apagar nada**: incluir marcação esquecida e anular marcação errada, sempre com motivo. A anulada continua no espelho, riscada, e tudo fica na trilha de auditoria.
 - **Calendário de feriados** por órgão, com um botão que inclui os feriados nacionais e de Roraima do ano (Carnaval, Paixão, Corpus Christi, 9 de julho, 5 de outubro, Dia do Servidor e outros).
 - **Importação do relógio de ponto** (arquivo AFD das Portarias 671/2021 e 1.510/2009), identificando o servidor pelo CPF ou PIS, com prévia e sem duplicar marcações. Exemplo **fictício** em `resources/modelos-importacao/exemplo_ponto_ficticio.txt` (386 marcações de 10 servidores, 3 com erro de propósito).
-- O fechamento do mês fica para a entrega 9.
 
 ### Entrega 6: painel, relatórios, API de consulta e manual
 

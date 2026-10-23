@@ -3,6 +3,7 @@
 namespace App\Frequencia;
 
 use App\Models\Afastamento;
+use App\Models\FechamentoFrequencia;
 use App\Models\Feriado;
 use App\Models\Ferias;
 use App\Models\Jornada;
@@ -21,7 +22,8 @@ use Illuminate\Support\Collection;
  * situação (normal, falta, registro incompleto, atraso, férias, afastamento,
  * feriado...). Férias aprovadas, afastamentos e feriados preenchem os dias sozinhos.
  * Falta, atraso e registro incompleto viram ocorrência, que o servidor justifica; o
- * dia abonado conta como trabalhado, com a jornada inteira.
+ * dia abonado conta como trabalhado, com a jornada inteira. Em mês fechado pelo RH
+ * nada mais é justificável.
  *
  * Carrega os dados de vários servidores de uma vez, para o resumo da unidade não
  * fazer uma consulta por pessoa.
@@ -71,6 +73,9 @@ class Espelho
     /** @var array<int, Collection> */
     private array $justificativas = [];
 
+    /** @var array<int, FechamentoFrequencia> fechamentos do mês, por unidade */
+    private array $fechamentos = [];
+
     /** @param  Collection<int, Servidor>  $servidores */
     public function carregar(Collection $servidores, Carbon $mes): self
     {
@@ -95,6 +100,8 @@ class Espelho
             ->entre($this->inicio, $this->fim)->get()->groupBy('servidor_id')->all();
         $this->justificativas = Justificativa::with('analisadoPor:id,name')->whereIn('servidor_id', $ids)->where('situacao', '!=', 'retirada')
             ->entre($this->inicio, $this->fim)->latest('id')->get()->groupBy('servidor_id')->all();
+        $this->fechamentos = FechamentoFrequencia::with('fechadoPor:id,name')->whereIn('unidade_id', $servidores->pluck('unidade_id')->filter()->unique()->all())
+            ->whereDate('mes', $this->inicio)->get()->keyBy('unidade_id')->all();
 
         return $this;
     }
@@ -102,6 +109,12 @@ class Espelho
     public function regra(): RegraFrequencia
     {
         return $this->regra;
+    }
+
+    /** Fechamento do mês do setor do servidor (aberto, conferido ou fechado), se houver. */
+    public function fechamentoDe(Servidor $servidor): ?FechamentoFrequencia
+    {
+        return $this->fechamentos[$servidor->unidade_id] ?? null;
     }
 
     /** Jornada do servidor no dia: a gravada vigente ou a padrão pela carga da ficha. */
@@ -112,7 +125,7 @@ class Espelho
     }
 
     /**
-     * @return array{dias: list<array<string, mixed>>, totais: array<string, int>}
+     * @return array{dias: list<array<string, mixed>>, totais: array<string, int>, fechado: bool}
      */
     public function calcular(Servidor $servidor, ?User $quem = null): array
     {
@@ -134,8 +147,9 @@ class Espelho
         }
 
         $dias = [];
-        $totais = ['dias_trabalho' => 0, 'trabalhados' => 0, 'faltas' => 0, 'incompletos' => 0, 'atencao' => 0, 'abonados' => 0, 'em_analise' => 0, 'a_justificar' => 0, 'ausencias' => 0, 'esperado' => 0, 'trabalhado' => 0];
+        $totais = ['dias_trabalho' => 0, 'trabalhados' => 0, 'faltas' => 0, 'incompletos' => 0, 'atencao' => 0, 'abonados' => 0, 'em_analise' => 0, 'a_justificar' => 0, 'ausencias' => 0, 'ferias' => 0, 'afastamentos' => 0, 'esperado' => 0, 'trabalhado' => 0];
         $justificativas = $this->justificativas[$servidor->id] ?? collect();
+        $fechado = (bool) $this->fechamentoDe($servidor)?->fechado();
 
         foreach (CarbonPeriod::create($this->inicio, $this->fim) as $dia) {
             $chave = $dia->format('Y-m-d');
@@ -195,7 +209,7 @@ class Espelho
                     $trabalhado = max($trabalhado, $esperado);
                 }
             }
-            $justificavel = in_array($situacao, Justificativa::OCORRENCIAS, true) && ! in_array($justificativa?->situacao, ['pendente', 'abonada'], true);
+            $justificavel = ! $fechado && in_array($situacao, Justificativa::OCORRENCIAS, true) && ! in_array($justificativa?->situacao, ['pendente', 'abonada'], true);
 
             if (in_array($situacao, ['ok', 'atencao', 'falta', 'incompleto', 'abonado'], true)) {
                 $totais['dias_trabalho']++;
@@ -211,6 +225,7 @@ class Espelho
                 $totais['a_justificar'] += (int) $justificavel;
             } elseif (in_array($situacao, ['ferias', 'afastamento'], true) && $jornada->trabalhaEm($dia) && $feriado === null) {
                 $totais['ausencias']++;
+                $totais[$situacao === 'ferias' ? 'ferias' : 'afastamentos']++;
             }
 
             $dias[] = [
@@ -231,6 +246,6 @@ class Espelho
             ];
         }
 
-        return ['dias' => $dias, 'totais' => $totais];
+        return ['dias' => $dias, 'totais' => $totais, 'fechado' => $fechado];
     }
 }

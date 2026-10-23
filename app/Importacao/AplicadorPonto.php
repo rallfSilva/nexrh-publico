@@ -2,15 +2,18 @@
 
 namespace App\Importacao;
 
+use App\Frequencia\Fechamento;
 use App\Models\Importacao;
 use App\Models\RegistroPonto;
+use App\Models\Servidor;
 use App\Support\Auditoria;
 use Illuminate\Support\Facades\DB;
 use LogicException;
 
 /**
  * Grava as marcações de um arquivo do relógio de ponto já analisado. Marcação que
- * entrou no sistema depois da análise (mesmo servidor, mesmo minuto) é ignorada.
+ * entrou no sistema depois da análise (mesmo servidor, mesmo minuto) é ignorada,
+ * assim como a de mês fechado pelo RH depois da análise.
  * Um único registro de auditoria para o arquivo todo.
  */
 class AplicadorPonto
@@ -24,6 +27,9 @@ class AplicadorPonto
 
         return DB::transaction(function () use ($importacao) {
             $agora = now();
+            $marcacoes = $importacao->dados['ponto'] ?? [];
+            $fechados = Fechamento::mesesFechados(Servidor::whereIn('id', array_unique(array_column($marcacoes, 'servidor_id')))->pluck('unidade_id', 'id')->all());
+            $marcacoes = array_filter($marcacoes, fn (array $m) => ! isset($fechados[$m['servidor_id'].'|'.substr($m['momento'], 0, 7)]));
             $linhas = array_map(fn (array $m) => [
                 'orgao_id' => $importacao->orgao_id,
                 'servidor_id' => $m['servidor_id'],
@@ -34,7 +40,7 @@ class AplicadorPonto
                 'registrado_por' => $importacao->user_id,
                 'created_at' => $agora,
                 'updated_at' => $agora,
-            ], $importacao->dados['ponto'] ?? []);
+            ], array_values($marcacoes));
 
             $gravadas = 0;
             foreach (array_chunk($linhas, 500) as $lote) {

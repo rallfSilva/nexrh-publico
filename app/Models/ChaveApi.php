@@ -28,6 +28,7 @@ class ChaveApi extends Model
         'cargos' => 'Cargos e vagas (totais por cargo)',
         'servidores' => 'Servidores: nome, matrícula, cargo, setor e vínculo (sem dados pessoais)',
         'ferias' => 'Escala de férias e ausências (sem o tipo de licença)',
+        'frequencia' => 'Boletim de frequência dos meses fechados pelo RH (faltas, abonos e horas, sem motivos nem anexos)',
     ];
 
     protected function casts(): array

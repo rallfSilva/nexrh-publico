@@ -58,7 +58,9 @@ No Windows, os mesmos comandos funcionam no PowerShell. Sem o Git, baixe o zip d
 
 A cópia leva o banco de dados e os arquivos do dossiê, com soma de verificação (SHA-256). Uma cópia feita no Windows restaura no Linux e vice-versa.
 
-### Windows (PowerShell, dentro da pasta do sistema)
+### Windows (PowerShell)
+
+Os scripts valem sempre para a pasta do NexRH onde estão, mesmo chamados de outra pasta (ex.: `C:\NexRH\nexrh-publico\scripts\backup.ps1`). Assim não há risco de copiar ou restaurar outro sistema que use Docker no mesmo computador.
 
 ```powershell
 .\scripts\backup.ps1                                   # cópia agora, em .\backups\nexrh_AAAA-MM-DD_HHMMSS
@@ -79,7 +81,7 @@ A tarefa agendada roda com o usuário que a criou, quando ele estiver conectado;
 ./scripts/restaurar.sh ./backups/nexrh_2026-10-22_020000
 ```
 
-Agende no cron, ex.: `0 2 * * * cd /opt/nexrh-publico && ./scripts/backup.sh >> /var/log/nexrh-backup.log 2>&1`.
+Agende no cron, ex.: `0 2 * * * /opt/nexrh-publico/scripts/backup.sh >> /var/log/nexrh-backup.log 2>&1`.
 
 ### Regras para as cópias
 
@@ -97,6 +99,8 @@ docker compose exec app php artisan nexrh:chave-api SELC "Ponto eletrônico" --e
 ```
 
 A última linha é a chave, que não aparece de novo. Cada chamada leva o cabeçalho `Authorization: Bearer nxr_...`. As consultas e os filtros estão no manual (menu **Ajuda › API de consulta**). A API é só leitura, vê um órgão só, devolve o CPF mascarado e não devolve documentos, endereço, contato, dados bancários nem o tipo de licença. O limite é de 60 consultas por minuto por chave.
+
+Para a folha, o escopo **frequência** dá `GET /api/v1/frequencia?mes=AAAA-MM` (opcional `&unidade=ID`): o boletim de cada setor **já fechado pelo RH** (faltas, abonados, incompletos, férias, afastamentos, minutos esperados e trabalhados), e a lista `setores_abertos`. Mês aberto não sai, porque ainda pode mudar.
 
 ## 7. Frequência: redes do órgão e relógio de ponto
 

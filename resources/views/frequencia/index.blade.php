@@ -19,6 +19,7 @@
                 @endphp
                 <a href="{{ route('justificativas.index') }}" class="btn {{ $emAnalise ? 'btn-p' : 'btn-s' }}"><x-icone nome="ok" />Justificativas{{ $emAnalise ? ' a analisar ('.$emAnalise.')' : '' }}</a>
             @endcan
+            <a href="{{ route('frequencia.fechamento') }}" class="btn btn-s"><x-icone nome="cadeado" />Fechamento do mês</a>
             @can('frequencia.gerenciar')
                 <a href="{{ route('importacoes.create', ['tipo' => 'ponto']) }}" class="btn btn-s"><x-icone nome="arquivo" />Importar relógio</a>
                 <a href="{{ route('frequencia.regras') }}" class="btn btn-s"><x-icone nome="editar" />Regras e feriados</a>

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Ferias\Periodos;
+use App\Frequencia\Fechamento;
 use App\Frequencia\Justificador;
 use App\Models\Afastamento;
 use App\Models\Documento;
+use App\Models\FechamentoFrequencia;
 use App\Models\Ferias;
 use App\Models\Justificativa;
 use App\Models\Orgao;
@@ -54,6 +56,7 @@ class PainelController extends Controller
             ] : null,
             'aAprovar' => $user->can('aprovar-ferias') ? Ferias::aAprovarPor($user)->count() : null,
             'justificativasAAnalisar' => $user->can('analisar-justificativas') ? Justificativa::aAnalisarPor($user)->count() : null,
+            'fechamento' => $user->can('analisar-justificativas') ? $this->fechamento($user) : null,
             'documentosAValidar' => $user->can('gerenciar-dossie') ? Documento::where('situacao', 'pendente')->count() : null,
             'cargos' => $user->can('cargos.ver') ? [
                 'ocupadas' => Vaga::where('situacao', 'ocupada')->count(),
@@ -142,6 +145,28 @@ class PainelController extends Controller
             'proximas' => $servidor->ferias->filter(fn ($f) => in_array($f->situacao, ['programada', 'aprovada'], true) && $f->fim->gte(today()))->sortBy('inicio')->first(),
             'pendencias' => [...$servidor->pendencias(), ...$servidor->pendenciasDoDossie(), ...$servidor->pendenciasDeFerias()],
             'ocorrencias' => app(Justificador::class)->ocorrencias($servidor, today()->subMonthNoOverflow()->startOfMonth(), today()->subDay(), $user)->count(),
+        ];
+    }
+
+    /** Fechamento do mês anterior: setores com servidores, quantos fechados ou conferidos e o prazo. */
+    private function fechamento(User $user): ?array
+    {
+        $mes = today()->startOfMonth()->subMonthNoOverflow();
+        $setores = Servidor::where('situacao', 'ativo')->whereNotNull('unidade_id')
+            ->when(! $user->can('frequencia.gerenciar'), fn ($q) => $q->whereIn('unidade_id', $user->idsUnidadesChefiadas()))
+            ->distinct()->pluck('unidade_id');
+        if ($setores->isEmpty()) {
+            return null;
+        }
+        $fechamentos = FechamentoFrequencia::whereIn('unidade_id', $setores)->whereDate('mes', $mes)->get();
+        $orgaoId = $user->orgao_id ?? Unidade::find($setores->first())?->orgao_id;
+
+        return [
+            'mes' => $mes,
+            'setores' => $setores->count(),
+            'fechados' => $fechamentos->whereNotNull('fechado_em')->count(),
+            'conferidos' => $fechamentos->filter(fn ($f) => $f->conferido_em || $f->fechado_em)->count(),
+            'prazo' => Fechamento::prazo($orgaoId, $mes),
         ];
     }
 }

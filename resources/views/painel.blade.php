@@ -95,6 +95,18 @@
                 <span class="foot">{{ $justificativasAAnalisar ? 'esperando abono ou recusa' : 'nenhuma esperando' }}</span>
             </a>
         @endif
+        @if ($fechamento)
+            @php
+                $rhFecha = auth()->user()->can('frequencia.gerenciar');
+                $feitos = $rhFecha ? $fechamento['fechados'] : $fechamento['conferidos'];
+                $faltam = $fechamento['setores'] - $feitos;
+            @endphp
+            <a href="{{ route('frequencia.fechamento') }}" class="card kpi kpi-link">
+                <span class="lbl"><span class="chip {{ $faltam ? (today()->gt($fechamento['prazo']) ? 'c-err' : 'c-warn') : 'c-teal' }}"><x-icone nome="cadeado" /></span>Fechamento do mês</span>
+                <span class="val">{{ $feitos }}<span style="font-size:16px;color:var(--color-texto2);font-weight:600;margin-left:6px;letter-spacing:0">de {{ $fechamento['setores'] }}</span></span>
+                <span class="foot">{{ $rhFecha ? 'setores fechados' : 'setores conferidos' }} em {{ $fechamento['mes']->translatedFormat('F') }}{{ $faltam ? ' · prazo '.(today()->gt($fechamento['prazo']) ? 'vencido em ' : 'até ').$fechamento['prazo']->format('d/m') : '' }}</span>
+            </a>
+        @endif
         @if ($documentosAValidar !== null)
             <a href="{{ route('documentos.pendentes') }}" class="card kpi kpi-link">
                 <span class="lbl"><span class="chip {{ $documentosAValidar ? 'c-warn' : 'c-teal' }}"><x-icone nome="pasta" /></span>Documentos a validar</span>

@@ -1,6 +1,6 @@
 {{-- Espelho do ponto de um mês. Recebe $calculo (Espelho::calcular), $mes, $navegar (fn (Carbon) => url),
      $corrigir (o RH anula marcações e abona dias; os diálogos ficam na página) e $justificar
-     (o próprio servidor, que justifica as ocorrências). --}}
+     (o próprio servidor, que justifica as ocorrências). Com $fechamento fechado, o mês fica só para consulta. --}}
 @use('App\Frequencia\Espelho')
 @use('App\Frequencia\Turnos')
 @use('App\Models\RegistroPonto')
@@ -9,6 +9,10 @@
     $semana = ['', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
     $corrigir ??= false;
     $justificar ??= false;
+    $fechamento ??= null;
+    if ($calculo['fechado'] ?? false) {
+        $corrigir = $justificar = false;
+    }
     $saldo = $t['trabalhado'] - $t['esperado'];
 @endphp
 <section class="card card-flush espelho">
@@ -24,6 +28,10 @@
             <button type="button" class="btn btn-s btn-sm" onclick="window.print()"><x-icone nome="download" tamanho="16" />Imprimir</button>
         </div>
     </div>
+
+    @if ($calculo['fechado'] ?? false)
+        <div class="flash flash-ok mes-fechado"><x-icone nome="cadeado" style="flex:none" /><div><b>Mês fechado</b> pelo RH{{ $fechamento?->fechado_em ? ' em '.$fechamento->fechado_em->format('d/m/Y') : '' }}{{ $fechamento?->fechadoPor ? ' ('.$fechamento->fechadoPor->name.')' : '' }}. Marcações, justificativas e abonos deste mês não mudam mais; se precisar corrigir, o RH reabre o mês do setor.</div></div>
+    @endif
 
     <dl class="esp-totais">
         <div><dt>Dias de trabalho</dt><dd>{{ $t['dias_trabalho'] }}</dd></div>
