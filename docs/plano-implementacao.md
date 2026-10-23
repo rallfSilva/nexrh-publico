@@ -5,15 +5,15 @@
 | 1 | Base: repositório, Docker, login, perfis, órgãos e unidades, auditoria, layout | Concluída |
 | 2 | Cargos e vagas, com importação e relatório de divergências | Concluída |
 | 3 | Servidores (ficha SEGAD, ficha em PDF) | Concluída |
-| 4 | Dossiê e dependentes | Em teste pelo cliente |
-| 5 | Férias com bloqueio de conflito e mínimo por setor | A fazer |
+| 4 | Dossiê e dependentes | Concluída |
+| 5 | Férias com bloqueio de conflito e mínimo por setor | Em teste pelo cliente |
 | 6 | Painel, relatórios, API inicial e manual | A fazer |
 
 ## Pendências do cliente
 
 - Lista oficial de unidades e chefes (a demonstração usa GAB, ASJUR, COAM, DTI, DRH e DAC).
-- Norma de férias usada pela SELC, antes da Entrega 5.
-- Mínimo de pessoas por setor durante as férias (provisório: 2, ou 1 para unidades pequenas).
+- Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
+- Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
 - Onde o sistema vai ficar hospedado, antes da Entrega 6.
 
 ## Entrega 1: o que testar
@@ -74,3 +74,21 @@ Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
 12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.
+
+## Entrega 5: o que testar
+
+Use só os dados fictícios da demonstração e as planilhas `exemplo_afastamentos_ficticio.xlsx` e `exemplo_ferias_ficticio.xlsx` (menu **Modelos de planilha**). As regras de férias são provisórias até chegar a norma da SELC.
+
+1. Entrar como `rh.selc@nexrh.local` e abrir **Férias**: escolher o setor DTI e ir para janeiro de 2027. Três pessoas estão fora de 11 a 30/01 e a linha **Presentes** fica em 11, o mínimo do setor. Trocar para **Ano** e ver o mapa de 2026.
+2. Abrir a ficha de Ana Beatriz Martins, aba **Férias**: cinco períodos desde 14/03/2022, os anteriores todos gozados e 30 dias de saldo no período em curso.
+3. Clicar em **Marcar férias** num servidor de outro setor: escolher o período, a quantidade de dias e clicar numa das datas sugeridas. Conferir o último dia e a volta ao trabalho. Tentar 5 dias (abaixo do mínimo da etapa), mais dias do que o saldo e uma data que coincida com férias já marcadas: deve recusar.
+4. Na DTI, tentar marcar férias para mais alguém entre 11 e 30/01/2027: o sistema recusa e diz em que dia o setor ficaria abaixo do mínimo e quem já está fora.
+5. **Registrar afastamento** numa ficha (por exemplo, licença para tratamento de saúde) e ver que a escala passa a mostrar a pessoa fora. Tentar outro afastamento ou férias em cima dele: deve recusar. Cancelar o afastamento, com motivo.
+6. Ver a ficha de Ana Pacheco Teixeira (férias interrompidas e remarcadas) e a de João Gomes Siqueira (férias canceladas). Interromper férias em gozo de alguém e cancelar férias futuras: o saldo volta.
+7. Em **Regras de férias**, mudar o máximo de etapas para 2 e conferir que a regra nova vale para as próximas marcações. Voltar para 3.
+8. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Férias, clicar em **Pedir férias**, usar uma data sugerida e enviar. O pedido fica "Aguardando aprovação" e pode ser retirado. Tentar uma data com menos de 30 dias de antecedência: deve recusar.
+9. Entrar como `chefia.dti@nexrh.local`: o menu **Férias** mostra 2 pedidos a aprovar. Aprovar um e recusar o outro com motivo. A chefia vê a escala só da DTI.
+10. Entrar de novo como o RH: o pedido da Ana (DAC, sem chefia cadastrada) aparece em **Férias a aprovar**.
+11. Em **Importar planilha** › Afastamentos e depois › Férias, enviar os exemplos fictícios: 14 afastamentos prontos e 3 com erro; 397 etapas de férias prontas e 5 com erro (CPF de ninguém do órgão, período aquisitivo que não confere, datas em cima de outra etapa, DTI abaixo do mínimo e saldo estourado). Nenhum CPF completo aparece. Confirmar e enviar de novo: nada é duplicado.
+12. Entrar como `auditor.selc@nexrh.local`: vê a escala e as férias, sem botões de marcar ou aprovar, e os afastamentos aparecem só como "Licença ou afastamento".
+13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada das férias da SELC aparece.

@@ -28,17 +28,20 @@ class PerfisSeeder extends Seeder
         'servidores.ver_equipe' => 'Ver os servidores da própria equipe (unidades que chefia)',
         'servidores.gerenciar' => 'Cadastrar e alterar servidores, declarações e desligamentos',
         'servidores.dados_pessoais' => 'Ver CPF completo, documentos, dados bancários e dados sensíveis, e gerar a ficha em PDF',
+        'ferias.ver' => 'Ver a escala de férias e os afastamentos de todo o órgão',
+        'ferias.gerenciar' => 'Marcar, cancelar e interromper férias, registrar afastamentos e definir as regras de férias',
+        'ferias.aprovar' => 'Aprovar ou recusar as férias pedidas pela própria equipe',
         'painel.ver' => 'Ver o painel',
     ];
 
     /** @var array<string, list<string>> */
     public const PERFIS = [
         'administrador-geral' => ['*'],
-        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais'],
-        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais'],
-        'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe'],
+        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
+        'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
+        'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe', 'ferias.aprovar'],
         'servidor' => ['painel.ver'],
-        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'servidores.ver'],
+        'auditor' => ['unidades.ver', 'usuarios.ver', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'servidores.ver', 'ferias.ver'],
     ];
 
     public function run(): void

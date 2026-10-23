@@ -26,6 +26,8 @@ class Importacao extends Model
         'modelo_nexrh' => 'Modelo padrão do NexRH (02_modelo_cargos_e_vagas)',
         'modelo_servidores' => 'Modelo padrão do NexRH (03_modelo_servidores)',
         'modelo_dependentes' => 'Modelo padrão do NexRH (04_modelo_dependentes)',
+        'modelo_ferias' => 'Modelo padrão do NexRH (05_modelo_ferias)',
+        'modelo_afastamentos' => 'Modelo padrão do NexRH (06_modelo_afastamentos)',
     ];
 
     /** @var array<string, string> */
@@ -33,6 +35,8 @@ class Importacao extends Model
         'cargos' => 'Quadro de cargos',
         'servidores' => 'Servidores',
         'dependentes' => 'Dependentes',
+        'ferias' => 'Férias',
+        'afastamentos' => 'Afastamentos',
     ];
 
     /** @var array<string, string> */

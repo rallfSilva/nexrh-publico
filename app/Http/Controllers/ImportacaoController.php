@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Importacao\AnalisadorAfastamentos;
 use App\Importacao\AnalisadorDependentes;
+use App\Importacao\AnalisadorFerias;
 use App\Importacao\AnalisadorQuadroCargos;
 use App\Importacao\AnalisadorServidores;
+use App\Importacao\AplicadorAfastamentos;
 use App\Importacao\AplicadorDependentes;
+use App\Importacao\AplicadorFerias;
 use App\Importacao\AplicadorQuadroCargos;
 use App\Importacao\AplicadorServidores;
 use App\Models\Importacao;
@@ -68,6 +72,8 @@ class ImportacaoController extends Controller
             $resultado = match ($tipo) {
                 'servidores' => app(AnalisadorServidores::class)->analisar($completo, $orgaoId),
                 'dependentes' => app(AnalisadorDependentes::class)->analisar($completo, $orgaoId),
+                'ferias' => app(AnalisadorFerias::class)->analisar($completo, $orgaoId),
+                'afastamentos' => app(AnalisadorAfastamentos::class)->analisar($completo, $orgaoId),
                 default => app(AnalisadorQuadroCargos::class)->analisar($completo),
             };
         } catch (RuntimeException $e) {
@@ -113,6 +119,24 @@ class ImportacaoController extends Controller
             return back()->with('erro', 'Esta importação não pode mais ser aplicada.');
         }
 
+        if ($importacao->tipo === 'ferias') {
+            $r = app(AplicadorFerias::class)->aplicar($importacao);
+
+            return redirect()->route('ferias.escala')->with('sucesso', sprintf(
+                'Férias importadas: %d nova(s) e %d atualizada(s). Elas aparecem na escala do setor e na aba Férias de cada ficha.',
+                $r['criadas'], $r['atualizadas'],
+            ));
+        }
+
+        if ($importacao->tipo === 'afastamentos') {
+            $r = app(AplicadorAfastamentos::class)->aplicar($importacao);
+
+            return redirect()->route('ferias.escala')->with('sucesso', sprintf(
+                'Afastamentos importados: %d novo(s) e %d atualizado(s). Eles entram na conta do mínimo de presentes de cada setor.',
+                $r['criados'], $r['atualizados'],
+            ));
+        }
+
         if ($importacao->tipo === 'dependentes') {
             $r = app(AplicadorDependentes::class)->aplicar($importacao);
 
@@ -154,7 +178,7 @@ class ImportacaoController extends Controller
         return redirect()->route('importacoes.index')->with('sucesso', 'Importação cancelada. Nada foi alterado.');
     }
 
-    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores; dependentes para quem gerencia o dossiê. */
+    /** Cargos para quem gerencia cargos; servidores para quem gerencia servidores; dependentes para quem gerencia o dossiê; férias e afastamentos para quem gerencia férias. */
     private function tiposPermitidos(Request $request): array
     {
         $user = $request->user();
@@ -163,6 +187,8 @@ class ImportacaoController extends Controller
             $user->can('cargos.gerenciar') ? 'cargos' : null,
             $user->can('servidores.gerenciar') ? 'servidores' : null,
             $user->can('gerenciar-dossie') ? 'dependentes' : null,
+            $user->can('ferias.gerenciar') ? 'ferias' : null,
+            $user->can('ferias.gerenciar') ? 'afastamentos' : null,
         ]));
     }
 

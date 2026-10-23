@@ -55,3 +55,28 @@ Usam as permissões que já existiam: `servidores.dados_pessoais` para ver e `se
 ## "Universitário" sai do código de parentesco
 
 A ficha tem o código 04 (filho universitário) e 07 (equiparado universitário) e, à parte, a coluna "universitário". Para os dois nunca se contradizerem, o sistema grava o código e deriva o "universitário" dele; na importação, "universitário = sim" com o código 03 vira 04. Os limites de idade não bloqueiam o cadastro: viram pendência, porque a idade muda com o tempo.
+
+## Regras de férias provisórias e por órgão
+
+A norma de férias da SELC ainda não chegou. As regras ficam numa tabela por órgão (`regras_ferias`), com valores provisórios (30 dias por período, até 3 etapas de pelo menos 10 dias, no máximo 2 períodos acumulados, 30 dias de antecedência no pedido do servidor) que o RH muda na tela. Quando a norma chegar, basta ajustar os números; nada fica fixo no código.
+
+## Cada etapa é uma linha, e "em gozo" e "gozada" são calculadas
+
+A tabela `ferias` guarda uma linha por etapa, com a situação de decisão: programada (aguardando aprovação), aprovada, recusada, cancelada ou interrompida. "Em gozo" e "gozada" vêm das datas de uma etapa aprovada, para nunca ficarem desatualizadas. Na interrupção, a etapa passa a ter só os dias gozados (o fim previsto fica guardado) e o resto volta ao saldo.
+
+## Mínimo de presentes por unidade, sem contar as subunidades
+
+O bloqueio usa o `minimo_presentes_ferias` da própria unidade e conta só quem está lotado nela, sem as subordinadas: é a equipe que a chefia de fato organiza. Férias aguardando aprovação já ocupam a vaga, para dois pedidos não passarem juntos. Afastamentos não passam pelo bloqueio (licença médica não espera vaga), mas contam como ausência para as férias dos colegas.
+
+## Data-base dos períodos aquisitivos
+
+Os períodos contam do ingresso no órgão. Quem traz tempo de outro vínculo com o Estado pode ter outra data-base: o RH ajusta na ficha, ou a planilha de férias traz períodos anteriores ao ingresso. A troca só é aceita enquanto o servidor não tem férias registradas, porque depois disso mudaria o período de etapas já gozadas. A troca fica na trilha de auditoria.
+
+## Tipo do afastamento é dado de saúde
+
+O tipo de licença pode revelar dado sensível (saúde, gestação, doença na família). Só quem vê dados pessoais do servidor vê o tipo; chefia, auditor e a escala mostram "Licença ou afastamento". Na trilha de auditoria, tipo e observação ficam "[protegido]".
+
+## Férias e afastamentos não são apagados
+
+Como no dossiê, nada é excluído: férias são recusadas, canceladas ou interrompidas, e afastamentos são cancelados, sempre com motivo e com quem fez.
+

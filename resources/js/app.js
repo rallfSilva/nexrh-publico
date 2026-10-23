@@ -181,3 +181,66 @@ $$('[data-abrir-dialogo]').forEach((botao) => {
 $$('[data-fechar-dialogo]').forEach((botao) => {
     botao.addEventListener('click', () => botao.closest('dialog').close());
 });
+
+/* Férias: último dia e volta ao trabalho, e sugestões de datas livres no setor. */
+$$('form[data-ferias-form]').forEach((form) => {
+    const inicio = form.querySelector('[name="inicio"]');
+    const dias = form.querySelector('[name="dias"]');
+    const fim = form.querySelector('[data-fim-ferias]');
+    const caixa = form.querySelector('[data-sugestoes]');
+    const formatar = (d) => d.toLocaleDateString('pt-BR', { timeZone: 'UTC', weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    function atualizarFim() {
+        const n = parseInt(dias.value, 10);
+        if (!inicio.value || !n) { fim.textContent = ''; return; }
+        const primeiro = new Date(`${inicio.value}T00:00:00Z`);
+        const ultimo = new Date(primeiro); ultimo.setUTCDate(ultimo.getUTCDate() + n - 1);
+        const volta = new Date(ultimo); volta.setUTCDate(volta.getUTCDate() + 1);
+        fim.textContent = `Último dia de férias: ${formatar(ultimo)}. Volta ao trabalho: ${formatar(volta)}.`;
+    }
+
+    function marcarEscolhida() {
+        $$('[data-inicio]', caixa).forEach((b) => b.setAttribute('aria-pressed', b.dataset.inicio === inicio.value ? 'true' : 'false'));
+    }
+
+    let espera;
+    function buscarSugestoes() {
+        clearTimeout(espera);
+        espera = setTimeout(async () => {
+            const periodo = form.querySelector('[name="periodo_aquisitivo_id"]:checked');
+            if (!periodo || !parseInt(dias.value, 10)) return;
+            const url = new URL(form.dataset.sugestoesUrl, window.location.origin);
+            url.searchParams.set('periodo', periodo.value);
+            url.searchParams.set('dias', dias.value);
+            caixa.setAttribute('aria-busy', 'true');
+            try {
+                const resposta = await fetch(url, { headers: { Accept: 'application/json' } });
+                const lista = resposta.ok ? await resposta.json() : [];
+                caixa.replaceChildren(...(lista.length ? lista.map((s) => {
+                    const b = document.createElement('button');
+                    b.type = 'button'; b.className = 'chip-data'; b.dataset.inicio = s.inicio; b.textContent = s.texto;
+                    return b;
+                }) : [Object.assign(document.createElement('span'), { className: 'small muted', textContent: 'Nenhuma data livre encontrada para esse número de dias.' })]));
+                marcarEscolhida();
+            } finally {
+                caixa.removeAttribute('aria-busy');
+            }
+        }, 250);
+    }
+
+    caixa.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-inicio]');
+        if (!b) return;
+        inicio.value = b.dataset.inicio;
+        atualizarFim(); marcarEscolhida();
+    });
+    inicio.addEventListener('input', () => { atualizarFim(); marcarEscolhida(); });
+    dias.addEventListener('input', () => { atualizarFim(); buscarSugestoes(); });
+    form.addEventListener('change', (e) => {
+        if (e.target.name !== 'periodo_aquisitivo_id') return;
+        const saldo = parseInt(e.target.dataset.saldo, 10);
+        if (parseInt(dias.value, 10) > saldo) dias.value = saldo;
+        atualizarFim(); buscarSugestoes();
+    });
+    atualizarFim(); marcarEscolhida();
+});

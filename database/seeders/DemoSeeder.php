@@ -2,15 +2,21 @@
 
 namespace Database\Seeders;
 
+use App\Importacao\AnalisadorAfastamentos;
 use App\Importacao\AnalisadorDependentes;
+use App\Importacao\AnalisadorFerias;
 use App\Importacao\AnalisadorQuadroCargos;
 use App\Importacao\AnalisadorServidores;
+use App\Importacao\AplicadorAfastamentos;
 use App\Importacao\AplicadorDependentes;
+use App\Importacao\AplicadorFerias;
 use App\Importacao\AplicadorQuadroCargos;
 use App\Importacao\AplicadorServidores;
+use App\Models\Afastamento;
 use App\Models\Cargo;
 use App\Models\Dependente;
 use App\Models\Documento;
+use App\Models\Ferias;
 use App\Models\Importacao;
 use App\Models\Orgao;
 use App\Models\Servidor;
@@ -77,12 +83,13 @@ class DemoSeeder extends Seeder
             $criados[$email] = $user;
         }
 
-        $gab = $this->unidade($selc, 'GAB', 'Gabinete do Secretário', 'gabinete', null, null, 1);
-        $this->unidade($selc, 'ASJUR', 'Assessoria Jurídica', 'assessoria', $gab, null, 1);
-        $this->unidade($selc, 'COAM', 'Coordenadoria de Administração', 'coordenadoria', $gab, $criados['chefia.coam@nexrh.local'], 2);
-        $this->unidade($selc, 'DTI', 'Departamento de Tecnologia da Informação', 'departamento', $gab, $criados['chefia.dti@nexrh.local'], 2);
-        $this->unidade($selc, 'DRH', 'Departamento de Recursos Humanos', 'departamento', $gab, null, 2);
-        $this->unidade($selc, 'DAC', 'Departamento de Acompanhamento de Contratos', 'departamento', $gab, null, 2);
+        // O mínimo de presentes nas férias acompanha o tamanho de cada setor no exemplo de servidores.
+        $gab = $this->unidade($selc, 'GAB', 'Gabinete do Secretário', 'gabinete', null, null, 7);
+        $this->unidade($selc, 'ASJUR', 'Assessoria Jurídica', 'assessoria', $gab, null, 6);
+        $this->unidade($selc, 'COAM', 'Coordenadoria de Administração', 'coordenadoria', $gab, $criados['chefia.coam@nexrh.local'], 16);
+        $this->unidade($selc, 'DTI', 'Departamento de Tecnologia da Informação', 'departamento', $gab, $criados['chefia.dti@nexrh.local'], 11);
+        $this->unidade($selc, 'DRH', 'Departamento de Recursos Humanos', 'departamento', $gab, null, 5);
+        $this->unidade($selc, 'DAC', 'Departamento de Acompanhamento de Contratos', 'departamento', $gab, null, 22);
 
         $this->quadroDeCargos($selc);
 
@@ -91,6 +98,7 @@ class DemoSeeder extends Seeder
         $this->servidores($selc);
         $this->dependentes($selc);
         $this->dossie($selc, $criados['rh.selc@nexrh.local']);
+        $this->afastamentosEFerias($selc, $criados['rh.selc@nexrh.local']);
 
         $outroGab = $this->unidade($outro, 'GAB', 'Gabinete', 'gabinete', null, null, 1);
         $this->unidade($outro, 'DAF', 'Diretoria Administrativa e Financeira', 'diretoria', $outroGab, null, 2);
@@ -183,6 +191,43 @@ class DemoSeeder extends Seeder
         (new AplicadorDependentes)->aplicar($importacao);
     }
 
+    /** Importa os exemplos dos modelos 06 e 05: os afastamentos primeiro, porque as férias desviam deles. */
+    private function afastamentosEFerias(Orgao $orgao, User $rh): void
+    {
+        $tipos = [
+            'afastamentos' => [Afastamento::class, AnalisadorAfastamentos::class, AplicadorAfastamentos::class, 'exemplo_afastamentos_ficticio.xlsx'],
+            'ferias' => [Ferias::class, AnalisadorFerias::class, AplicadorFerias::class, 'exemplo_ferias_ficticio.xlsx'],
+        ];
+
+        foreach ($tipos as $tipo => [$modelo, $analisador, $aplicador, $arquivo]) {
+            if ($modelo::withoutGlobalScopes()->where('orgao_id', $orgao->id)->exists()) {
+                continue;
+            }
+
+            $origem = resource_path('modelos-importacao/'.$arquivo);
+            $caminho = 'importacoes/'.$orgao->id.'/demonstracao-'.$tipo.'.xlsx';
+            Storage::disk('local')->put($caminho, file_get_contents($origem));
+
+            $resultado = app($analisador)->analisar($origem, $orgao->id);
+
+            $importacao = Importacao::create([
+                'orgao_id' => $orgao->id,
+                'user_id' => $rh->id,
+                'tipo' => $tipo,
+                'formato' => $resultado['formato'],
+                'arquivo_nome' => str_replace('exemplo_', '', $arquivo),
+                'arquivo_caminho' => $caminho,
+                'arquivo_hash' => hash_file('sha256', $origem),
+                'situacao' => 'analisada',
+                'resumo' => $resultado['resumo'],
+                'divergencias' => $resultado['divergencias'],
+                'dados' => [$tipo => $resultado[$tipo]],
+            ]);
+
+            app($aplicador)->aplicar($importacao);
+        }
+    }
+
     /**
      * Dossiê de demonstração: a servidora Ana com documentos em todas as situações
      * (validados, aguardando validação e um recusado) e alguns servidores com parte
@@ -246,7 +291,7 @@ class DemoSeeder extends Seeder
 
     private function unidade(Orgao $orgao, string $sigla, string $nome, string $tipo, ?Unidade $pai, ?User $chefe, int $minimo): Unidade
     {
-        return Unidade::withoutGlobalScopes()->firstOrCreate(
+        $unidade = Unidade::withoutGlobalScopes()->firstOrCreate(
             ['orgao_id' => $orgao->id, 'sigla' => $sigla],
             [
                 'nome' => $nome,
@@ -257,5 +302,12 @@ class DemoSeeder extends Seeder
                 'email' => strtolower($sigla).'@'.strtolower($orgao->sigla).'.exemplo.gov.br',
             ],
         );
+
+        // Instalações anteriores à Entrega 5 têm o mínimo antigo (1 ou 2): passa ao do exemplo, sem mexer no que o RH mudou.
+        if ($unidade->minimo_presentes_ferias !== $minimo && in_array($unidade->minimo_presentes_ferias, [1, 2], true)) {
+            $unidade->update(['minimo_presentes_ferias' => $minimo]);
+        }
+
+        return $unidade;
     }
 }

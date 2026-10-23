@@ -34,7 +34,11 @@ class AppServiceProvider extends ServiceProvider
         // Dossiê e dependentes são dados pessoais: quem gerencia servidores e vê dados pessoais.
         Gate::define('gerenciar-dossie', fn (User $u) => $u->can('servidores.gerenciar') && $u->can('servidores.dados_pessoais'));
 
-        Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar'));
+        // Escala de férias: o órgão todo para RH, administração e auditoria; a equipe para a chefia.
+        Gate::define('ver-escala', fn (User $u) => $u->can('ferias.ver') || $u->can('ferias.aprovar'));
+        Gate::define('aprovar-ferias', fn (User $u) => $u->can('ferias.gerenciar') || $u->can('ferias.aprovar'));
+
+        Gate::define('importar-planilhas', fn (User $u) => $u->can('cargos.gerenciar') || $u->can('servidores.gerenciar') || $u->can('ferias.gerenciar'));
 
         // Usuários de outro órgão respondem 404, como se não existissem.
         // Servidor fora do órgão ou fora da equipe da chefia responde 404.

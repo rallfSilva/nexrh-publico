@@ -1,18 +1,25 @@
 @php
     $servidores = $tipo === 'servidores';
     $dependentes = $tipo === 'dependentes';
-    $titulo = ['cargos' => 'Importar quadro de cargos', 'servidores' => 'Importar servidores', 'dependentes' => 'Importar dependentes'][$tipo];
+    $ferias = $tipo === 'ferias';
+    $afastamentos = $tipo === 'afastamentos';
+    $titulo = ['cargos' => 'Importar quadro de cargos', 'servidores' => 'Importar servidores', 'dependentes' => 'Importar dependentes', 'ferias' => 'Importar férias', 'afastamentos' => 'Importar afastamentos'][$tipo];
+    $voltar = match ($tipo) {
+        'cargos' => [route('cargos.index'), 'Cargos e vagas'],
+        'ferias', 'afastamentos' => [route('ferias.escala'), 'Escala de férias'],
+        default => [route('servidores.index'), 'Servidores'],
+    };
 @endphp
 <x-layouts.app :titulo="$titulo">
     <div>
-        <a href="{{ $tipo === 'cargos' ? route('cargos.index') : route('servidores.index') }}" class="small" style="font-weight:600;display:inline-flex;gap:4px;align-items:center"><x-icone nome="voltar" tamanho="16" />{{ $tipo === 'cargos' ? 'Cargos e vagas' : 'Servidores' }}</a>
+        <a href="{{ $voltar[0] }}" class="small" style="font-weight:600;display:inline-flex;gap:4px;align-items:center"><x-icone nome="voltar" tamanho="16" />{{ $voltar[1] }}</a>
         <h1 class="h1" style="margin-top:8px">{{ $titulo }}</h1>
         <p class="sub">Envie a planilha. O sistema lê, confere cada linha e mostra uma prévia com as divergências. Nada muda até você confirmar.</p>
     </div>
 
     @if (count($tipos) > 1)
         <nav class="abas-lista card" style="padding:6px 16px 0;border-radius:14px" aria-label="O que importar">
-            @foreach (['cargos' => ['cargos', 'Quadro de cargos'], 'servidores' => ['servidor', 'Servidores'], 'dependentes' => ['familia', 'Dependentes']] as $t => [$icone, $rotulo])
+            @foreach (['cargos' => ['cargos', 'Quadro de cargos'], 'servidores' => ['servidor', 'Servidores'], 'dependentes' => ['familia', 'Dependentes'], 'ferias' => ['sol', 'Férias'], 'afastamentos' => ['calendario', 'Afastamentos']] as $t => [$icone, $rotulo])
                 @if (in_array($t, $tipos, true))
                     <a class="aba" href="{{ route('importacoes.create', ['tipo' => $t]) }}" aria-selected="{{ $tipo === $t ? 'true' : 'false' }}"><x-icone :nome="$icone" tamanho="18" />{{ $rotulo }}</a>
                 @endif
@@ -42,7 +49,21 @@
 
         <div class="card">
             <h2>Formatos aceitos</h2>
-            @if ($dependentes)
+            @if ($ferias)
+                <div class="list">
+                    <div class="li"><span class="chip c-navy"><x-icone nome="planilha" /></span><div><b>Modelo 05 · Férias</b><div class="meta">Uma linha por etapa, com o CPF do servidor (ou a matrícula), o período aquisitivo, o primeiro dia, os dias e a situação. <a href="{{ route('modelos.baixar', '05_modelo_ferias.xlsx') }}">Baixar modelo</a></div></div></div>
+                    <div class="li"><span class="chip c-teal"><x-icone nome="calendario" /></span><div><b>Período aquisitivo conferido</b><div class="meta">Precisa ser um dos períodos do servidor, contados da data de efeitos da nomeação. Saldo e número de etapas seguem as regras de férias do órgão.</div></div></div>
+                    <div class="li"><span class="chip c-warn"><x-icone nome="alerta" /></span><div><b>Conflitos ficam de fora</b><div class="meta">Etapa que coincide com outras férias ou afastamento do servidor, ou que ainda não terminou e deixaria o setor abaixo do mínimo, não é importada. Importe os afastamentos (modelo 06) antes.</div></div></div>
+                </div>
+                <p class="muted small" style="margin:14px 0 0">Para testar sem dados reais, use o <a href="{{ route('modelos.baixar', 'exemplo_ferias_ficticio.xlsx') }}">exemplo de férias fictícias</a>, com os servidores do exemplo do modelo 03.</p>
+            @elseif ($afastamentos)
+                <div class="list">
+                    <div class="li"><span class="chip c-navy"><x-icone nome="planilha" /></span><div><b>Modelo 06 · Afastamentos</b><div class="meta">Uma linha por licença ou afastamento, com o CPF do servidor (ou a matrícula), o tipo e o período. <a href="{{ route('modelos.baixar', '06_modelo_afastamentos.xlsx') }}">Baixar modelo</a></div></div></div>
+                    <div class="li"><span class="chip c-teal"><x-icone nome="cadeado" /></span><div><b>Sem dado médico</b><div class="meta">Não informe diagnóstico nem CID. O tipo aparece só para o RH e a administração; a chefia e o auditor veem "Licença ou afastamento".</div></div></div>
+                    <div class="li"><span class="chip c-warn"><x-icone nome="alerta" /></span><div><b>Sem sobreposição</b><div class="meta">Afastamento que coincide com outro, ou com férias já marcadas do mesmo servidor, não é importado.</div></div></div>
+                </div>
+                <p class="muted small" style="margin:14px 0 0">Para testar sem dados reais, use o <a href="{{ route('modelos.baixar', 'exemplo_afastamentos_ficticio.xlsx') }}">exemplo de afastamentos fictícios</a>.</p>
+            @elseif ($dependentes)
                 <div class="list">
                     <div class="li"><span class="chip c-navy"><x-icone nome="planilha" /></span><div><b>Modelo 04 · Dependentes</b><div class="meta">Uma linha por dependente, com o CPF do servidor titular, o código de parentesco da ficha e as finalidades (IR, previdência, salário-família). <a href="{{ route('modelos.baixar', '04_modelo_dependentes.xlsx') }}">Baixar modelo</a></div></div></div>
                     <div class="li"><span class="chip c-teal"><x-icone nome="servidor" /></span><div><b>Ligação com o servidor</b><div class="meta">O titular é achado pelo CPF. Importe os servidores (modelo 03) antes. Dependente que já existe (mesmo CPF) é atualizado, não duplicado.</div></div></div>
