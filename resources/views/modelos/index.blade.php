@@ -7,7 +7,7 @@
     <div class="g2">
         @foreach ($modelos as $arquivo => [$titulo, $descricao])
             <div class="card" style="display:flex;gap:16px;align-items:flex-start">
-                <span class="chip c-teal" style="width:44px;height:44px;border-radius:12px"><x-icone nome="planilha" tamanho="22" /></span>
+                <span class="chip c-teal" style="width:44px;height:44px;border-radius:12px"><x-icone :nome="str_ends_with($arquivo, '.txt') ? 'arquivo' : 'planilha'" tamanho="22" /></span>
                 <div style="flex:1;min-width:0">
                     <h2>{{ $titulo }}</h2>
                     <p class="hint">{{ $descricao }}</p>
@@ -18,5 +18,5 @@
         @endforeach
     </div>
 
-    <div class="flash flash-aviso"><x-icone nome="alerta" style="flex:none" /><div>A importação das planilhas entra junto com cada módulo: cargos na Entrega 2, servidores na 3, dependentes na 4 e férias na 5.</div></div>
+    <div class="flash flash-aviso"><x-icone nome="alerta" style="flex:none" /><div>Para importar, use Importar planilha em cada módulo: cargos, servidores, dependentes, férias e afastamentos. O arquivo do relógio de ponto é importado em Frequência.</div></div>
 </x-layouts.app>

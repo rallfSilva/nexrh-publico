@@ -49,6 +49,7 @@
                 @if ($minha['saldo'] > 0)
                     <a href="{{ route('minha-ficha.ferias.create') }}" class="btn btn-s"><x-icone nome="sol" />Pedir férias</a>
                 @endif
+                <a href="{{ route('meu-ponto') }}" class="btn btn-s"><x-icone nome="relogio" />Meu ponto</a>
                 <a href="{{ route('minha-ficha') }}" class="btn btn-p"><x-icone nome="pasta" />Minha ficha</a>
             </div>
         </section>

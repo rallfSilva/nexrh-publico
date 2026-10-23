@@ -264,3 +264,19 @@ document.addEventListener('click', async (e) => {
     botao.textContent = 'Copiada';
     setTimeout(() => { botao.innerHTML = original; }, 1800);
 });
+
+/* Meu ponto: relógio com a hora do servidor do sistema (corrige a diferença do
+   relógio do computador) e um envio só por clique. */
+$$('[data-relogio]').forEach((caixa) => {
+    const diferenca = Number(caixa.dataset.relogio) * 1000 - Date.now();
+    const hora = caixa.querySelector('.hora');
+    const fuso = caixa.dataset.fuso || undefined;
+    const mostrar = () => {
+        hora.textContent = new Date(Date.now() + diferenca).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: fuso });
+    };
+    mostrar();
+    setInterval(mostrar, 1000);
+});
+$$('form[data-um-envio]').forEach((form) => {
+    form.addEventListener('submit', () => form.querySelectorAll('button[type=submit]').forEach((b) => { b.disabled = true; }));
+});

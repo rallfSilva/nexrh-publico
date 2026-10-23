@@ -146,6 +146,16 @@ class Servidor extends Model
         return $this->hasMany(Afastamento::class)->orderByDesc('inicio')->orderByDesc('id');
     }
 
+    public function jornadas(): HasMany
+    {
+        return $this->hasMany(Jornada::class)->orderByDesc('inicio')->orderByDesc('id');
+    }
+
+    public function registrosPonto(): HasMany
+    {
+        return $this->hasMany(RegistroPonto::class)->orderBy('momento');
+    }
+
     public function eventos(): HasMany
     {
         return $this->hasMany(ServidorEvento::class)->orderByDesc('data')->orderByDesc('id');

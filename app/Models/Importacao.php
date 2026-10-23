@@ -28,6 +28,8 @@ class Importacao extends Model
         'modelo_dependentes' => 'Modelo padrão do NexRH (04_modelo_dependentes)',
         'modelo_ferias' => 'Modelo padrão do NexRH (05_modelo_ferias)',
         'modelo_afastamentos' => 'Modelo padrão do NexRH (06_modelo_afastamentos)',
+        'afd_671' => 'Arquivo AFD do relógio de ponto (Portaria 671/2021)',
+        'afd_1510' => 'Arquivo AFD do relógio de ponto (Portaria 1.510/2009)',
     ];
 
     /** @var array<string, string> */
@@ -37,6 +39,7 @@ class Importacao extends Model
         'dependentes' => 'Dependentes',
         'ferias' => 'Férias',
         'afastamentos' => 'Afastamentos',
+        'ponto' => 'Relógio de ponto',
     ];
 
     /** @var array<string, string> */

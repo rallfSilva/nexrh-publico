@@ -3,10 +3,12 @@
     $dependentes = $tipo === 'dependentes';
     $ferias = $tipo === 'ferias';
     $afastamentos = $tipo === 'afastamentos';
-    $titulo = ['cargos' => 'Importar quadro de cargos', 'servidores' => 'Importar servidores', 'dependentes' => 'Importar dependentes', 'ferias' => 'Importar férias', 'afastamentos' => 'Importar afastamentos'][$tipo];
+    $ponto = $tipo === 'ponto';
+    $titulo = ['cargos' => 'Importar quadro de cargos', 'servidores' => 'Importar servidores', 'dependentes' => 'Importar dependentes', 'ferias' => 'Importar férias', 'afastamentos' => 'Importar afastamentos', 'ponto' => 'Importar relógio de ponto'][$tipo];
     $voltar = match ($tipo) {
         'cargos' => [route('cargos.index'), 'Cargos e vagas'],
         'ferias', 'afastamentos' => [route('ferias.escala'), 'Escala de férias'],
+        'ponto' => [route('frequencia.index'), 'Frequência'],
         default => [route('servidores.index'), 'Servidores'],
     };
 @endphp
@@ -14,12 +16,12 @@
     <div>
         <a href="{{ $voltar[0] }}" class="small" style="font-weight:600;display:inline-flex;gap:4px;align-items:center"><x-icone nome="voltar" tamanho="16" />{{ $voltar[1] }}</a>
         <h1 class="h1" style="margin-top:8px">{{ $titulo }}</h1>
-        <p class="sub">Envie a planilha. O sistema lê, confere cada linha e mostra uma prévia com as divergências. Nada muda até você confirmar.</p>
+        <p class="sub">Envie {{ $ponto ? 'o arquivo' : 'a planilha' }}. O sistema lê, confere cada linha e mostra uma prévia com as divergências. Nada muda até você confirmar.</p>
     </div>
 
     @if (count($tipos) > 1)
         <nav class="abas-lista card" style="padding:6px 16px 0;border-radius:14px" aria-label="O que importar">
-            @foreach (['cargos' => ['cargos', 'Quadro de cargos'], 'servidores' => ['servidor', 'Servidores'], 'dependentes' => ['familia', 'Dependentes'], 'ferias' => ['sol', 'Férias'], 'afastamentos' => ['calendario', 'Afastamentos']] as $t => [$icone, $rotulo])
+            @foreach (['cargos' => ['cargos', 'Quadro de cargos'], 'servidores' => ['servidor', 'Servidores'], 'dependentes' => ['familia', 'Dependentes'], 'ferias' => ['sol', 'Férias'], 'afastamentos' => ['calendario', 'Afastamentos'], 'ponto' => ['relogio', 'Relógio de ponto']] as $t => [$icone, $rotulo])
                 @if (in_array($t, $tipos, true))
                     <a class="aba" href="{{ route('importacoes.create', ['tipo' => $t]) }}" aria-selected="{{ $tipo === $t ? 'true' : 'false' }}"><x-icone :nome="$icone" tamanho="18" />{{ $rotulo }}</a>
                 @endif
@@ -31,7 +33,7 @@
         <form method="POST" action="{{ route('importacoes.store') }}" enctype="multipart/form-data" class="card" style="display:flex;flex-direction:column;gap:18px">
             @csrf
             <input type="hidden" name="tipo" value="{{ $tipo }}">
-            <h2>Planilha</h2>
+            <h2>{{ $ponto ? 'Arquivo AFD' : 'Planilha' }}</h2>
             @if ($orgaos->isNotEmpty())
                 <x-campo nome="orgao_id" rotulo="Órgão" obrigatorio>
                     <select id="campo-orgao_id" name="orgao_id" class="input">
@@ -41,15 +43,23 @@
                     </select>
                 </x-campo>
             @endif
-            <x-campo nome="arquivo" rotulo="Arquivo .xlsx (até 10 MB)" obrigatorio>
-                <input id="campo-arquivo" name="arquivo" type="file" accept=".xlsx" class="input" style="padding-top:9px" required>
+            <x-campo nome="arquivo" :rotulo="$ponto ? 'Arquivo .txt do relógio (até 10 MB)' : 'Arquivo .xlsx (até 10 MB)'" obrigatorio>
+                <input id="campo-arquivo" name="arquivo" type="file" accept="{{ $ponto ? '.txt,text/plain' : '.xlsx' }}" class="input" style="padding-top:9px" required>
             </x-campo>
-            <div><button type="submit" class="btn btn-p"><x-icone nome="planilha" />Analisar planilha</button></div>
+            <div><button type="submit" class="btn btn-p"><x-icone nome="{{ $ponto ? 'arquivo' : 'planilha' }}" />Analisar {{ $ponto ? 'arquivo' : 'planilha' }}</button></div>
         </form>
 
         <div class="card">
             <h2>Formatos aceitos</h2>
-            @if ($ferias)
+            @if ($ponto)
+                <div class="list">
+                    <div class="li"><span class="chip c-navy"><x-icone nome="arquivo" /></span><div><b>AFD da Portaria 671/2021</b><div class="meta">Arquivo-Fonte de Dados exportado pelo relógio de ponto (REP), com o CPF de cada marcação.</div></div></div>
+                    <div class="li"><span class="chip c-navy"><x-icone nome="arquivo" /></span><div><b>AFD da Portaria 1.510/2009</b><div class="meta">Leiaute dos relógios mais antigos, com o PIS/PASEP. O PIS precisa estar na ficha do servidor.</div></div></div>
+                    <div class="li"><span class="chip c-teal"><x-icone nome="ok" /></span><div><b>Sem duplicar</b><div class="meta">Marcação que já está no sistema (mesmo servidor, mesmo minuto) é ignorada. Dá para enviar o arquivo do mês inteiro toda semana.</div></div></div>
+                    <div class="li"><span class="chip c-warn"><x-icone nome="alerta" /></span><div><b>CPF ou PIS sem servidor</b><div class="meta">Marcações de quem não está cadastrado no órgão ficam de fora e aparecem no relatório.</div></div></div>
+                </div>
+                <p class="muted small" style="margin:14px 0 0">Para testar sem dados reais, use o <a href="{{ route('modelos.baixar', 'exemplo_ponto_ficticio.txt') }}">exemplo de arquivo AFD fictício</a>, com marcações de agosto de 2026 de servidores da DAC da demonstração.</p>
+            @elseif ($ferias)
                 <div class="list">
                     <div class="li"><span class="chip c-navy"><x-icone nome="planilha" /></span><div><b>Modelo 05 · Férias</b><div class="meta">Uma linha por etapa, com o CPF do servidor (ou a matrícula), o período aquisitivo, o primeiro dia, os dias e a situação. <a href="{{ route('modelos.baixar', '05_modelo_ferias.xlsx') }}">Baixar modelo</a></div></div></div>
                     <div class="li"><span class="chip c-teal"><x-icone nome="calendario" /></span><div><b>Período aquisitivo conferido</b><div class="meta">Precisa ser um dos períodos do servidor, contados da data de efeitos da nomeação. Saldo e número de etapas seguem as regras de férias do órgão.</div></div></div>

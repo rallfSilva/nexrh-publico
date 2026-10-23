@@ -4,17 +4,26 @@
         $dependentes = $importacao->tipo === 'dependentes';
         $ferias = $importacao->tipo === 'ferias';
         $afastamentos = $importacao->tipo === 'afastamentos';
-        $porLinha = $servidores || $dependentes || $ferias || $afastamentos;
+        $ponto = $importacao->tipo === 'ponto';
+        $porLinha = $servidores || $dependentes || $ferias || $afastamentos || $ponto;
         $calc = $importacao->resumo['calculado'] ?? [];
         $decl = $importacao->resumo['declarado'] ?? null;
         $grupos = [
-            'bloqueia' => ['Impedem a importação', 'flash-erro', 'Corrija na planilha e envie de novo.'],
-            'erro' => $porLinha
+            'bloqueia' => ['Impedem a importação', 'flash-erro', $ponto ? 'Corrija no relógio e exporte o arquivo de novo.' : 'Corrija na planilha e envie de novo.'],
+            'erro' => $ponto
+                ? ['Marcações que não serão importadas', 'flash-aviso', 'As demais seguem normalmente. Depois de corrigir o cadastro, envie o arquivo de novo: o que já foi importado não se repete.']
+                : ($porLinha
                 ? ['Linhas que não serão importadas', 'flash-aviso', 'As demais linhas seguem normalmente. Corrija estas na planilha e envie de novo depois: quem já foi importado é atualizado, não duplicado.']
-                : ['Inconsistências da planilha', 'flash-aviso', 'Não impedem a importação: o sistema usa as linhas de cada vaga como verdade. Vale corrigir na origem.'],
+                : ['Inconsistências da planilha', 'flash-aviso', 'Não impedem a importação: o sistema usa as linhas de cada vaga como verdade. Vale corrigir na origem.']),
             'aviso' => ['Avisos', 'flash-ok', 'Pontos para conferir.'],
         ];
-        $rotulos = $ferias || $afastamentos ? [
+        $rotulos = $ponto ? [
+            'linhas' => 'Marcações no arquivo',
+            'validas' => 'Prontas para importar',
+            'ja_registradas' => 'Já estão no sistema (ignoradas)',
+            'com_erro' => 'Com erro (ficam de fora)',
+            'servidores' => 'Servidores',
+        ] : ($ferias || $afastamentos ? [
             'linhas' => 'Linhas preenchidas na aba '.($ferias ? 'Férias' : 'Afastamentos'),
             'validas' => 'Prontas para importar',
             'com_erro' => 'Com erro (ficam de fora)',
@@ -36,8 +45,9 @@
             'atualizados' => 'Já cadastrados (serão atualizados)',
             'sem_cargo' => 'Cargo não encontrado no quadro',
             'declaracoes' => 'Declarações',
-        ] : ['total' => 'Cargos na estrutura', 'remanejadas' => 'Remanejados para outros órgãos', 'disponiveis' => 'Disponíveis', 'ocupadas' => 'Ocupados', 'vagas' => 'Vagos']));
+        ] : ['total' => 'Cargos na estrutura', 'remanejadas' => 'Remanejados para outros órgãos', 'disponiveis' => 'Disponíveis', 'ocupadas' => 'Ocupados', 'vagas' => 'Vagos'])));
         $confirmar = match ($importacao->tipo) {
+            'ponto' => 'Gravar estas marcações no espelho de ponto dos servidores?',
             'ferias' => 'Gravar estas férias? A etapa que começa no mesmo dia para o mesmo servidor é atualizada.',
             'afastamentos' => 'Gravar estes afastamentos? O do mesmo tipo que começa no mesmo dia é atualizado.',
             'dependentes' => 'Gravar estes dependentes? Quem já está cadastrado (mesmo CPF para o mesmo servidor) é atualizado.',
@@ -73,7 +83,7 @@
         <div>
             <b>{{ \App\Models\Importacao::SITUACOES[$importacao->situacao] }}</b>
             @if ($importacao->situacao === 'aplicada') em {{ $importacao->aplicada_em->format('d/m/Y H:i') }}.
-            @elseif ($importacao->situacao === 'analisada') Confira a prévia abaixo e confirme para gravar {{ match ($importacao->tipo) { 'dependentes' => 'nos dependentes dos servidores', 'servidores' => 'no cadastro de servidores', 'ferias' => 'nas férias dos servidores', 'afastamentos' => 'nos afastamentos dos servidores', default => 'no quadro de cargos' } }}.
+            @elseif ($importacao->situacao === 'analisada') Confira a prévia abaixo e confirme para gravar {{ match ($importacao->tipo) { 'dependentes' => 'nos dependentes dos servidores', 'servidores' => 'no cadastro de servidores', 'ferias' => 'nas férias dos servidores', 'afastamentos' => 'nos afastamentos dos servidores', 'ponto' => 'no espelho de ponto dos servidores', default => 'no quadro de cargos' } }}.
             @endif
         </div>
     </div>
@@ -125,10 +135,36 @@
     @endforeach
 
     @if ($importacao->divergencias === [])
-        <div class="flash flash-ok"><x-icone nome="ok" style="flex:none" /><div>Nenhuma divergência encontrada. A planilha está consistente.</div></div>
+        <div class="flash flash-ok"><x-icone nome="ok" style="flex:none" /><div>Nenhuma divergência encontrada. {{ $ponto ? 'O arquivo está consistente.' : 'A planilha está consistente.' }}</div></div>
     @endif
 
-    @if ($previa !== [] && ($ferias || $afastamentos))
+    @if ($previa !== [] && $ponto)
+        @php
+            $porServidor = collect($previa)->groupBy('servidor_id')->map(fn ($m) => [
+                'nome' => $m[0]['servidor_nome'], 'sigla' => $m[0]['unidade_sigla'], 'n' => $m->count(),
+                'de' => $m->min('momento'), 'ate' => $m->max('momento'),
+            ])->sortBy('nome');
+        @endphp
+        <section class="card card-flush">
+            <div style="padding:22px 24px 8px"><h2>Prévia: {{ count($previa) }} marcações de {{ $porServidor->count() }} servidores</h2><p class="hint">De {{ \Illuminate\Support\Carbon::parse($calc['de'])->format('d/m/Y') }} a {{ \Illuminate\Support\Carbon::parse($calc['ate'])->format('d/m/Y') }}.</p></div>
+            <div class="tbl-wrap">
+                <table class="tbl">
+                    <thead><tr><th>Servidor</th><th>Setor</th><th class="num">Marcações</th><th>Primeira</th><th>Última</th></tr></thead>
+                    <tbody>
+                        @foreach ($porServidor as $p)
+                            <tr>
+                                <td><b>{{ $p['nome'] }}</b></td>
+                                <td class="sigla">{{ $p['sigla'] ?? '—' }}</td>
+                                <td class="num">{{ $p['n'] }}</td>
+                                <td style="white-space:nowrap">{{ \Illuminate\Support\Carbon::parse($p['de'])->format('d/m/Y H:i') }}</td>
+                                <td style="white-space:nowrap">{{ \Illuminate\Support\Carbon::parse($p['ate'])->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @elseif ($previa !== [] && ($ferias || $afastamentos))
         <section class="card card-flush">
             <div style="padding:22px 24px 8px"><h2>Prévia: {{ count($previa) }} {{ $ferias ? 'etapas de férias' : 'afastamentos' }}</h2></div>
             <div class="tbl-wrap">
