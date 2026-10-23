@@ -80,3 +80,22 @@ O tipo de licença pode revelar dado sensível (saúde, gestação, doença na f
 
 Como no dossiê, nada é excluído: férias são recusadas, canceladas ou interrompidas, e afastamentos são cancelados, sempre com motivo e com quem fez.
 
+## Chaves de API próprias, sem Sanctum
+
+A API é para sistemas, não para pessoas, então a chave pertence ao órgão e não a um usuário. Cada chave tem nome, escopos (unidades, cargos, servidores, férias), prazo opcional e pode ser revogada. O texto `nxr_...` aparece uma vez; o banco guarda só o SHA-256 e um prefixo para reconhecer a chave na lista. O limite é de 60 consultas por minuto por chave, e cada uso atualiza a data, o IP e o contador.
+
+## A API consulta como um usuário técnico do órgão
+
+Durante a chamada, a chave vira um usuário técnico, só em memória, com o `orgao_id` da chave. Assim o mesmo escopo global de órgão das telas vale para a API, e nenhuma consulta precisa lembrar de filtrar por órgão. A API não usa `withoutGlobalScopes()`.
+
+## A API e os relatórios não entregam dados pessoais
+
+A API devolve só o que um sistema de ponto ou de escala precisa: nome, matrícula, CPF mascarado, cargo, unidade, vínculo e situação, e nas ausências só "férias" ou "licença ou afastamento". Os relatórios e as exportações também saem com o CPF mascarado, e o tipo de licença só aparece para quem vê dados pessoais.
+
+## Toda exportação de relatório fica na trilha
+
+Excel e PDF saem do sistema e podem circular, então cada exportação gera um registro `exportacao` com o relatório, o formato, os filtros e o número de linhas. As telas de relatório mostram até 300 linhas; a exportação leva todas.
+
+## Manual dentro do sistema
+
+O manual fica em **Ajuda**, na mesma versão do sistema instalado, e marca as partes do perfil de quem está lendo. As imagens usam só dados fictícios. A TI tem um guia à parte, em `docs/guia-ti.md`.

@@ -71,6 +71,26 @@ jobs:
           PASTA=$(ls -d ./backups/nexrh_* | tail -1)
           echo RESTAURAR | ./scripts/restaurar.sh "$PASTA"
           docker compose exec -T db psql -U nexrh -d nexrh -tAc "select count(*) from users where email='admin@ci.local'" | grep -qx 1
+      - name: Backup e restauração pelo PowerShell (os scripts do Windows)
+        shell: pwsh
+        run: |
+          ./scripts/backup.ps1 -Destino ./backups-ps
+          $pasta = (Get-ChildItem ./backups-ps -Directory -Filter 'nexrh_*' | Sort-Object Name | Select-Object -Last 1).FullName
+          docker compose exec -T db psql -U nexrh -d nexrh -c "update users set name='Alterado depois da copia' where email='admin@ci.local'"
+          ./scripts/restaurar.ps1 -Pasta $pasta -Confirmar RESTAURAR
+          $nome = docker compose exec -T db psql -U nexrh -d nexrh -tAc "select name from users where email='admin@ci.local'"
+          if ($nome.Trim() -ne 'Admin CI') { throw "A restauração não voltou o dado da cópia ($nome)." }
+          # A cópia do Windows também confere no Linux, e a do Linux restaura pelo PowerShell.
+          Push-Location $pasta; sha256sum -c SHA256SUMS; Pop-Location
+          $sh = (Get-ChildItem ./backups -Directory -Filter 'nexrh_*' | Select-Object -Last 1).FullName
+          ./scripts/restaurar.ps1 -Pasta $sh -Confirmar RESTAURAR
+          docker compose exec -T app php artisan about --only=environment
+      - name: API responde com chave
+        run: |
+          CHAVE=$(docker compose exec -T app php artisan nexrh:chave-api CI "Teste do CI" --escopos=unidades,servidores | tail -1)
+          curl -fsS -H "Authorization: Bearer $CHAVE" http://localhost:8080/api/v1/unidades | grep -q '"dados"'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/v1/unidades)" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $CHAVE" http://localhost:8080/api/v1/ferias)" = 403
       - name: Registros em caso de falha
         if: failure()
         run: docker compose logs --tail=200

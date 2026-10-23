@@ -35,6 +35,7 @@ class RegistroAuditoria extends Model
         'download' => 'Download',
         'importacao' => 'Importação de planilha',
         'acesso' => 'Acesso a dados pessoais',
+        'exportacao' => 'Exportação de relatório',
     ];
 
     protected static function booted(): void

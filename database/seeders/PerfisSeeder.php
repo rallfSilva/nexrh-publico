@@ -32,12 +32,13 @@ class PerfisSeeder extends Seeder
         'ferias.gerenciar' => 'Marcar, cancelar e interromper férias, registrar afastamentos e definir as regras de férias',
         'ferias.aprovar' => 'Aprovar ou recusar as férias pedidas pela própria equipe',
         'painel.ver' => 'Ver o painel',
+        'api.gerenciar' => 'Criar e revogar as chaves de acesso à API de consulta',
     ];
 
     /** @var array<string, list<string>> */
     public const PERFIS = [
         'administrador-geral' => ['*'],
-        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
+        'administrador-orgao' => ['unidades.ver', 'unidades.gerenciar', 'usuarios.ver', 'usuarios.gerenciar', 'auditoria.ver', 'painel.ver', 'api.gerenciar', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
         'rh' => ['unidades.ver', 'usuarios.ver', 'painel.ver', 'cargos.ver', 'cargos.gerenciar', 'servidores.ver', 'servidores.gerenciar', 'servidores.dados_pessoais', 'ferias.ver', 'ferias.gerenciar'],
         'chefia' => ['unidades.ver', 'painel.ver', 'servidores.ver_equipe', 'ferias.aprovar'],
         'servidor' => ['painel.ver'],

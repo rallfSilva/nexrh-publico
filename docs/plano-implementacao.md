@@ -6,15 +6,15 @@
 | 2 | Cargos e vagas, com importação e relatório de divergências | Concluída |
 | 3 | Servidores (ficha SEGAD, ficha em PDF) | Concluída |
 | 4 | Dossiê e dependentes | Concluída |
-| 5 | Férias com bloqueio de conflito e mínimo por setor | Em teste pelo cliente |
-| 6 | Painel, relatórios, API inicial e manual | A fazer |
+| 5 | Férias com bloqueio de conflito e mínimo por setor | Concluída |
+| 6 | Painel, relatórios, API inicial e manual | Em teste pelo cliente |
 
 ## Pendências do cliente
 
 - Lista oficial de unidades e chefes (a demonstração usa GAB, ASJUR, COAM, DTI, DRH e DAC).
 - Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
 - Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
-- Onde o sistema vai ficar hospedado, antes da Entrega 6.
+- Onde o sistema vai ficar hospedado. Enquanto não se decide, a premissa é o computador local (Windows com Docker), com a cópia de segurança diária pelo Agendador de Tarefas.
 
 ## Entrega 1: o que testar
 
@@ -74,6 +74,22 @@ Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
 12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.
+
+## Entrega 6: o que testar
+
+Use só os dados fictícios da demonstração.
+
+1. Entrar como `rh.selc@nexrh.local`: o **Painel** mostra os números do órgão, os servidores por unidade (a marca é o mínimo de presentes), as férias dos próximos 12 meses, quem está de férias agora e nos próximos 30 dias e as pendências. Clicar num número ou numa pendência leva à lista ou ao relatório certo.
+2. Abrir **Relatórios** › **Servidores**: filtrar por unidade e por vínculo, conferir que o CPF aparece mascarado e baixar em **Excel** e em **PDF**. Abrir **Trilha de auditoria**: as duas exportações aparecem, com os filtros usados.
+3. Em **Relatórios** › **Saldo de férias**, escolher "Só quem acumulou": aparece quem tem mais de um período com saldo. Ver também **Férias**, **Licenças e afastamentos**, **Pendências** e **Dependentes**.
+4. Entrar como `chefia.dti@nexrh.local`: o painel mostra só a equipe da DTI e os relatórios trazem só a DTI. A chefia não vê quadro de cargos nem dependentes.
+5. Entrar como `servidor.selc@nexrh.local`: o painel mostra o próprio saldo, as próximas férias e o que falta na ficha. O menu não tem **Relatórios**.
+6. Entrar como `auditor.selc@nexrh.local`: vê o painel e os relatórios, sem dependentes, e as licenças aparecem só como "Licença ou afastamento".
+7. Entrar como `admin.selc@nexrh.local` e abrir **Chaves de API**: criar uma chave só com "Unidades e organograma" e copiar. Ela aparece uma vez; ao recarregar a página, só o começo fica visível.
+8. No PowerShell, testar a chave (troque `nxr_...` pela chave copiada):
+   `curl.exe -H "Authorization: Bearer nxr_..." http://127.0.0.1:8090/api/v1/unidades` responde a lista de unidades; `/api/v1/servidores` responde 403 (fora do que a chave pode); sem a chave, 401. Revogar a chave e repetir: 401.
+9. Abrir **Ajuda**: as partes do seu perfil vêm marcadas com "Para você". Testar **Imprimir ou salvar em PDF**.
+10. Na pasta do sistema, rodar `.\scripts\backup.ps1` e conferir a pasta nova em `.\backups`. Se quiser a cópia diária, `.\scripts\agendar-backup.ps1`.
 
 ## Entrega 5: o que testar
 

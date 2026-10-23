@@ -244,3 +244,23 @@ $$('form[data-ferias-form]').forEach((form) => {
     });
     atualizarFim(); marcarEscolhida();
 });
+
+// Botão "Copiar": copia o texto do elemento indicado em data-copiar.
+document.addEventListener('click', async (e) => {
+    const botao = e.target.closest('[data-copiar]');
+    if (!botao) return;
+    const alvo = document.getElementById(botao.dataset.copiar);
+    if (!alvo) return;
+    try {
+        await navigator.clipboard.writeText(alvo.textContent.trim());
+    } catch {
+        const faixa = document.createRange();
+        faixa.selectNodeContents(alvo);
+        getSelection().removeAllRanges();
+        getSelection().addRange(faixa);
+        document.execCommand('copy');
+    }
+    const original = botao.innerHTML;
+    botao.textContent = 'Copiada';
+    setTimeout(() => { botao.innerHTML = original; }, 1800);
+});
