@@ -108,7 +108,7 @@
     .tbl tbody tr:hover td { background: #F9FCFE; }
     .tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
     .tbl .acoes { text-align: right; white-space: nowrap; }
-    .tbl-wrap { overflow-x: auto; }
+    .tbl-wrap { overflow-x: auto; position: relative; }
     .muted { color: var(--color-texto2); }
     .small { font-size: 12.5px; }
     .sigla { font-weight: 700; color: var(--color-marinho); }
@@ -273,6 +273,74 @@
     dialog.modal::backdrop { background: rgba(15,42,58,.45); }
     dialog.modal form { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 
+    /* Férias */
+    .aba .n.n-alerta { background: #FFEBD9; color: #9A3412; }
+    .ferias-topo { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; padding: 16px 18px; border-radius: 14px; background: #F7FBFD; border: 1px solid var(--color-linha); margin-bottom: 16px; }
+    .ferias-topo .fx { display: flex; flex-direction: column; min-width: 150px; }
+    .ferias-topo .lbl { font-size: 12px; font-weight: 600; color: var(--color-texto2); }
+    .ferias-topo .fx b { font-size: 20px; font-weight: 800; letter-spacing: -.02em; margin-top: 2px; }
+    .ferias-topo .fx small { font-size: 12.5px; color: var(--color-texto2); }
+    .ferias-topo .btns { margin-left: auto; }
+    .periodos { display: flex; flex-direction: column; gap: 12px; }
+    .periodo { border: 1px solid var(--color-linha); border-radius: 14px; padding: 14px 16px; }
+    .periodo > header { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: space-between; align-items: center; }
+    .periodo > header b { display: block; font-size: 14.5px; }
+    .periodo > header small { display: block; font-size: 12.5px; color: var(--color-texto2); margin-top: 2px; }
+    .periodo .saldo { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+    .periodo .saldo .barra { width: 160px; height: 8px; }
+    .etapas-ferias { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .etapa-f { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: #FAFCFD; border: 1px solid #EEF3F7; }
+    .etapa-f .txt { flex: 1; min-width: 0; }
+    .etapa-f .txt b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .etapa-f .txt small { display: block; font-size: 12.5px; color: var(--color-texto2); margin-top: 2px; }
+    .etapa-f .txt small.motivo { color: #9F1D1D; }
+    .etapa-f .txt small.motivo b { display: inline; font-size: inherit; }
+    .etapa-f.inativa .txt b { color: var(--color-texto2); text-decoration: line-through; text-decoration-color: #9AAFBE; }
+    .etapa-f .doc-decisao { margin-left: 42px; }
+    .periodos-escolha { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+    .periodo-op { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid #C9DCE8; border-radius: 14px; cursor: pointer; background: #fff; }
+    .periodo-op:hover { background: #F6FAFC; }
+    .periodo-op input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--color-azul); flex: none; }
+    .periodo-op:has(input:checked) { border-color: var(--color-azul); background: #F0F7FC; box-shadow: 0 0 0 3px rgba(108,177,218,.25); }
+    .periodo-op b { display: block; font-size: 15px; }
+    .periodo-op small { display: block; font-size: 12.5px; color: var(--color-texto2); margin-top: 2px; }
+    .periodo-op em { font-style: normal; font-weight: 700; color: var(--color-marinho); }
+    .sugestoes { margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: #F3F8FB; border: 1px solid #DCEBF4; }
+    .sugestoes .cab { display: flex; gap: 8px; align-items: center; color: var(--color-marinho); font-size: 14px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips[aria-busy="true"] { opacity: .5; }
+    .chip-data { min-height: 40px; padding: 0 14px; border-radius: 99px; border: 1px solid #C9DCE8; background: #fff; color: var(--color-marinho); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+    .chip-data:hover { background: var(--color-gelo); }
+    .chip-data[aria-pressed="true"] { background: var(--color-azul); border-color: var(--color-azul); color: #fff; }
+    .escala-filtros .campo:first-child { flex: 2 1 280px; }
+    .escala-cab { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; padding: 20px 20px 10px; }
+    .legenda { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 0 20px 14px; font-size: 12.5px; color: var(--color-texto2); }
+    .legenda span { display: inline-flex; gap: 6px; align-items: center; }
+    .lg { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+    .lg.ferias, .grade-ferias td.ferias { background: var(--color-azul); }
+    .lg.pedido, .grade-ferias td.pedido { background: repeating-linear-gradient(135deg, var(--color-celeste) 0 4px, var(--color-gelo) 4px 8px); }
+    .lg.afastamento, .grade-ferias td.afastamento { background: var(--color-turquesa); }
+    .lg.baixo { background: #FDE2E2; border: 1px solid #F1A9A9; }
+    .grade-ferias { border-collapse: separate; border-spacing: 0; font-size: 12px; width: 100%; }
+    .grade-ferias th, .grade-ferias td { border-bottom: 1px solid #EEF3F7; border-right: 1px solid #F3F7FA; text-align: center; padding: 0; height: 32px; min-width: 26px; font-variant-numeric: tabular-nums; }
+    .grade-ferias thead th { font-weight: 700; color: var(--color-texto2); background: #F7FAFC; height: 40px; line-height: 1.15; font-size: 12px; }
+    .grade-ferias thead th span { display: block; font-size: 10px; font-weight: 600; color: #8BA2B2; }
+    .grade-ferias .nome { position: sticky; left: 0; z-index: 1; background: #fff; text-align: left; padding: 0 14px 0 20px; min-width: 210px; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; font-size: 13px; border-right: 1px solid var(--color-linha); }
+    .grade-ferias thead .nome { background: #F7FAFC; }
+    .grade-ferias .nome a { color: var(--color-tinta); text-decoration: none; }
+    .grade-ferias .nome a:hover { color: var(--color-azul); text-decoration: underline; }
+    .grade-ferias .fds { background-color: #F7F9FB; }
+    .grade-ferias thead th.hoje { background: var(--color-gelo); color: var(--color-marinho); }
+    .grade-ferias tfoot th, .grade-ferias tfoot td { font-weight: 700; color: var(--color-marinho); background: #F7FAFC; border-top: 1px solid var(--color-linha); }
+    .grade-ferias tfoot td.baixo { background: #FDE2E2; color: #9F1D1D; }
+    .grade-ferias.ano td { min-width: 56px; font-weight: 700; }
+    .grade-ferias.ano thead a { color: inherit; text-decoration: none; }
+    .grade-ferias.ano thead a:hover { color: var(--color-azul); }
+    .grade-ferias.ano td.ferias { background: var(--color-gelo); color: var(--color-marinho); }
+    .grade-ferias.ano td.pedido { background: #FFF1E3; color: #9A3412; }
+    .grade-ferias.ano td.afastamento { background: var(--color-agua); color: #155E6B; }
+    .grade-ferias.ano td.num { padding: 0 16px; text-align: right; }
+
     @media print {
         .side, .top, .nao-imprimir { display: none !important; }
         .content { padding: 0; max-width: none; }
@@ -289,6 +357,8 @@
         .doc .txt { flex-basis: calc(100% - 60px); }
         .doc-acoes { width: 100%; justify-content: flex-end; }
         .dossie-topo { flex-direction: column; align-items: stretch; }
+        .ferias-topo .btns { margin-left: 0; width: 100%; }
+        .etapa-f .doc-decisao { margin-left: 0; }
     }
     @media (max-width: 860px) {
         .app { flex-direction: column; }
@@ -302,5 +372,7 @@
         .etapas { position: static; }
         .tl li { grid-template-columns: 80px 18px minmax(0, 1fr); }
         .tl li::before { left: 97px; }
+        .grade-ferias .nome { min-width: 150px; max-width: 160px; padding-left: 12px; }
+        .periodo .saldo { align-items: flex-start; }
     }
 }

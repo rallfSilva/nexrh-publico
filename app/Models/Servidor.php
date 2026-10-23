@@ -131,6 +131,21 @@ class Servidor extends Model
         return $this->hasMany(Dependente::class)->orderBy('data_nascimento')->orderBy('id');
     }
 
+    public function periodosAquisitivos(): HasMany
+    {
+        return $this->hasMany(PeriodoAquisitivo::class)->orderBy('inicio');
+    }
+
+    public function ferias(): HasMany
+    {
+        return $this->hasMany(Ferias::class)->orderBy('inicio')->orderBy('id');
+    }
+
+    public function afastamentos(): HasMany
+    {
+        return $this->hasMany(Afastamento::class)->orderByDesc('inicio')->orderByDesc('id');
+    }
+
     public function eventos(): HasMany
     {
         return $this->hasMany(ServidorEvento::class)->orderByDesc('data')->orderByDesc('id');
@@ -297,6 +312,36 @@ class Servidor extends Model
             foreach ($dep->alertas() as $alerta) {
                 $p[] = ['titulo' => 'Revisar dependente '.$dep->nome, 'detalhe' => $alerta];
             }
+        }
+
+        return $p;
+    }
+
+    /**
+     * Pendências de férias: pedidos aguardando aprovação e períodos vencidos com saldo
+     * (acumulados). Espera períodos, férias e afastamentos já carregados.
+     *
+     * @return list<array{titulo: string, detalhe: string}>
+     */
+    public function pendenciasDeFerias(): array
+    {
+        if (! $this->ativo()) {
+            return [];
+        }
+
+        $p = [];
+        $aguardando = $this->ferias->where('situacao', 'programada');
+        if ($aguardando->isNotEmpty()) {
+            $p[] = ['titulo' => 'Férias aguardando aprovação', 'detalhe' => $aguardando->map->periodoTexto()->implode('; ').'. A chefia ou o RH aprova.'];
+        }
+
+        $regra = RegraFerias::doOrgao($this->orgao_id);
+        $acumulados = $this->periodosAquisitivos->filter(fn (PeriodoAquisitivo $pa) => $pa->completo() && $pa->saldo() > 0);
+        if ($acumulados->count() >= $regra->max_periodos_acumulados) {
+            $p[] = [
+                'titulo' => 'Férias acumuladas: '.$acumulados->count().' períodos com saldo',
+                'detalhe' => 'Períodos '.$acumulados->map->rotulo()->implode(', ').'. O limite é de '.$regra->max_periodos_acumulados.' períodos acumulados: marque as férias do mais antigo.',
+            ];
         }
 
         return $p;

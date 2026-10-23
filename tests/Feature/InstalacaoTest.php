@@ -2,14 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\Afastamento;
 use App\Models\Dependente;
 use App\Models\Documento;
+use App\Models\Ferias;
 use App\Models\Servidor;
+use App\Models\Unidade;
 use App\Models\User;
 use App\Models\Vaga;
 use Database\Seeders\DemoSeeder;
 use Database\Seeders\PerfisSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -54,6 +58,7 @@ class InstalacaoTest extends TestCase
     public function test_dados_de_demonstracao_sao_ficticios_e_consistentes(): void
     {
         Storage::fake('local');
+        Carbon::setTestNow('2026-10-22 10:00:00'); // os exemplos de férias foram montados para esta data
         $this->seed(PerfisSeeder::class);
         $this->seed(DemoSeeder::class);
 
@@ -71,5 +76,16 @@ class InstalacaoTest extends TestCase
         $this->assertSame(67, Dependente::withoutGlobalScopes()->count());
         $ana = User::where('email', 'servidor.selc@nexrh.local')->first()->servidor;
         $this->assertEqualsCanonicalizing(['validado', 'pendente', 'recusado'], Documento::withoutGlobalScopes()->where('servidor_id', $ana->id)->distinct()->pluck('situacao')->all());
+
+        // Férias e afastamentos dos exemplos dos modelos 05 e 06, sem as linhas erradas.
+        $this->assertSame(14, Afastamento::withoutGlobalScopes()->count());
+        $this->assertSame(397, Ferias::withoutGlobalScopes()->count());
+        $this->assertSame(11, Unidade::withoutGlobalScopes()->where('sigla', 'DTI')->whereHas('orgao', fn ($q) => $q->where('sigla', 'SELC'))->value('minimo_presentes_ferias'));
+        $this->assertTrue(Ferias::withoutGlobalScopes()->where('situacao', 'programada')->exists());
+
+        // Semear de novo não duplica nada.
+        $this->seed(DemoSeeder::class);
+        $this->assertSame(397, Ferias::withoutGlobalScopes()->count());
+        $this->assertSame(14, Afastamento::withoutGlobalScopes()->count());
     }
 }

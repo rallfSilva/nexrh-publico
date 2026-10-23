@@ -9,6 +9,9 @@
     // Dossiê e dependentes: RH e administração (completo) ou o próprio servidor.
     $gerenciaDossie = ! $propria && auth()->user()->can('gerenciar-dossie');
     $podeEnviar = $s->ativo() && ($propria || $gerenciaDossie);
+    // Férias: o RH marca, cancela e interrompe; a chefia (equipe) e o RH aprovam, nunca as próprias.
+    $gerenciaFerias = ! $propria && auth()->user()->can('ferias.gerenciar');
+    $aprovaFerias = ! $propria && auth()->user()->can('aprovar-ferias') && $s->user_id !== auth()->id();
     $declaracoes = $s->declaracoes->groupBy('tipo');
     $campo = function (string $rotulo, $valor) {
         $vazio = $valor === null || $valor === '';
@@ -63,6 +66,9 @@
                     <a role="tab" class="aba" href="?aba=dossie" data-aba="dossie" aria-controls="dossie">Dossiê<span class="n">{{ $s->documentos->where('situacao', '!=', 'arquivado')->count() }}</span></a>
                     <a role="tab" class="aba" href="?aba=dependentes" data-aba="dependentes" aria-controls="dependentes">Dependentes<span class="n">{{ $s->dependentes->filter->ativo()->count() }}</span></a>
                 @endif
+                <a role="tab" class="aba" href="?aba=ferias" data-aba="ferias" aria-controls="ferias">Férias
+                    @if ($s->ferias->where('situacao', 'programada')->isNotEmpty())<span class="n n-alerta">{{ $s->ferias->where('situacao', 'programada')->count() }}</span>@endif
+                </a>
                 <a role="tab" class="aba" href="?aba=historico" data-aba="historico" aria-controls="historico">Histórico</a>
             </div>
 
@@ -174,6 +180,8 @@
                 <div class="painel-aba" id="dependentes" role="tabpanel">@include('servidores.partes.dependentes')</div>
             @endif
 
+            <div class="painel-aba" id="ferias" role="tabpanel">@include('servidores.partes.ferias')</div>
+
             {{-- Linha do tempo --}}
             <div class="painel-aba" id="historico" role="tabpanel">
                 @if ($s->eventos->isEmpty())
@@ -214,6 +222,10 @@
                             <button type="button" class="btn btn-s" data-abrir-dialogo="dialogo-documento"><x-icone nome="enviar" tamanho="18" />Incluir documento no dossiê</button>
                             <a href="{{ route('dependentes.create', $s) }}" class="btn btn-s"><x-icone nome="familia" tamanho="18" />Cadastrar dependente</a>
                         @endif
+                        @if ($gerenciaFerias)
+                            <a href="{{ route('ferias.create', $s) }}" class="btn btn-s"><x-icone nome="sol" tamanho="18" />Marcar férias</a>
+                            <a href="{{ route('afastamentos.create', $s) }}" class="btn btn-s"><x-icone nome="calendario" tamanho="18" />Registrar afastamento</a>
+                        @endif
                         <button type="button" class="btn btn-d" data-abrir-dialogo="dialogo-desligar"><x-icone nome="sair" tamanho="18" />Registrar desligamento</button>
                     </div>
                 </section>
@@ -231,6 +243,7 @@
 
     @includeWhen($podeEnviar, 'servidores.partes.dialogos-dossie')
     @includeWhen($gerenciaDossie, 'servidores.partes.dialogos-rh')
+    @includeWhen($gerenciaFerias || $aprovaFerias, 'servidores.partes.dialogos-ferias')
 
     @if ($gerencia && $s->ativo())
         <dialog class="modal" id="dialogo-desligar" aria-labelledby="t-desligar">

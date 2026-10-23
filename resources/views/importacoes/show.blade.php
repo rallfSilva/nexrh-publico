@@ -2,7 +2,9 @@
     @php
         $servidores = $importacao->tipo === 'servidores';
         $dependentes = $importacao->tipo === 'dependentes';
-        $porLinha = $servidores || $dependentes;
+        $ferias = $importacao->tipo === 'ferias';
+        $afastamentos = $importacao->tipo === 'afastamentos';
+        $porLinha = $servidores || $dependentes || $ferias || $afastamentos;
         $calc = $importacao->resumo['calculado'] ?? [];
         $decl = $importacao->resumo['declarado'] ?? null;
         $grupos = [
@@ -12,7 +14,14 @@
                 : ['Inconsistências da planilha', 'flash-aviso', 'Não impedem a importação: o sistema usa as linhas de cada vaga como verdade. Vale corrigir na origem.'],
             'aviso' => ['Avisos', 'flash-ok', 'Pontos para conferir.'],
         ];
-        $rotulos = $dependentes ? [
+        $rotulos = $ferias || $afastamentos ? [
+            'linhas' => 'Linhas preenchidas na aba '.($ferias ? 'Férias' : 'Afastamentos'),
+            'validas' => 'Prontas para importar',
+            'com_erro' => 'Com erro (ficam de fora)',
+            'novos' => $ferias ? 'Etapas novas' : 'Afastamentos novos',
+            'atualizados' => 'Já cadastrados (serão atualizados)',
+            'servidores' => 'Servidores na planilha',
+        ] : ($dependentes ? [
             'linhas' => 'Linhas preenchidas na aba Dependentes',
             'validas' => 'Prontas para importar',
             'com_erro' => 'Com erro (ficam de fora)',
@@ -27,8 +36,10 @@
             'atualizados' => 'Já cadastrados (serão atualizados)',
             'sem_cargo' => 'Cargo não encontrado no quadro',
             'declaracoes' => 'Declarações',
-        ] : ['total' => 'Cargos na estrutura', 'remanejadas' => 'Remanejados para outros órgãos', 'disponiveis' => 'Disponíveis', 'ocupadas' => 'Ocupados', 'vagas' => 'Vagos']);
+        ] : ['total' => 'Cargos na estrutura', 'remanejadas' => 'Remanejados para outros órgãos', 'disponiveis' => 'Disponíveis', 'ocupadas' => 'Ocupados', 'vagas' => 'Vagos']));
         $confirmar = match ($importacao->tipo) {
+            'ferias' => 'Gravar estas férias? A etapa que começa no mesmo dia para o mesmo servidor é atualizada.',
+            'afastamentos' => 'Gravar estes afastamentos? O do mesmo tipo que começa no mesmo dia é atualizado.',
             'dependentes' => 'Gravar estes dependentes? Quem já está cadastrado (mesmo CPF para o mesmo servidor) é atualizado.',
             'servidores' => 'Gravar estes servidores? Quem já está cadastrado (mesmo CPF) é atualizado.',
             default => 'Aplicar esta planilha ao quadro de cargos? Os cargos e vagas da planilha substituem os atuais.',
@@ -54,13 +65,15 @@
         </div>
     </div>
 
-    @php($classeSituacao = ['analisada' => 'flash-aviso', 'aplicada' => 'flash-ok', 'cancelada' => 'flash-aviso', 'recusada' => 'flash-erro'][$importacao->situacao] ?? 'flash-aviso')
+    @php
+        $classeSituacao = ['analisada' => 'flash-aviso', 'aplicada' => 'flash-ok', 'cancelada' => 'flash-aviso', 'recusada' => 'flash-erro'][$importacao->situacao] ?? 'flash-aviso';
+    @endphp
     <div class="flash {{ $classeSituacao }}">
         <x-icone nome="{{ $importacao->situacao === 'aplicada' ? 'ok' : 'alerta' }}" style="flex:none" />
         <div>
             <b>{{ \App\Models\Importacao::SITUACOES[$importacao->situacao] }}</b>
             @if ($importacao->situacao === 'aplicada') em {{ $importacao->aplicada_em->format('d/m/Y H:i') }}.
-            @elseif ($importacao->situacao === 'analisada') Confira a prévia abaixo e confirme para gravar {{ $dependentes ? 'nos dependentes dos servidores' : ($servidores ? 'no cadastro de servidores' : 'no quadro de cargos') }}.
+            @elseif ($importacao->situacao === 'analisada') Confira a prévia abaixo e confirme para gravar {{ match ($importacao->tipo) { 'dependentes' => 'nos dependentes dos servidores', 'servidores' => 'no cadastro de servidores', 'ferias' => 'nas férias dos servidores', 'afastamentos' => 'nos afastamentos dos servidores', default => 'no quadro de cargos' } }}.
             @endif
         </div>
     </div>
@@ -92,7 +105,9 @@
     </section>
 
     @foreach ($grupos as $nivel => [$titulo, $classe, $explicacao])
-        @php($itens = $importacao->divergenciasDoNivel($nivel))
+        @php
+            $itens = $importacao->divergenciasDoNivel($nivel);
+        @endphp
         @if ($itens !== [])
             <section class="card">
                 <h2>{{ $titulo }} ({{ count($itens) }})</h2>
@@ -113,7 +128,39 @@
         <div class="flash flash-ok"><x-icone nome="ok" style="flex:none" /><div>Nenhuma divergência encontrada. A planilha está consistente.</div></div>
     @endif
 
-    @if ($previa !== [] && $dependentes)
+    @if ($previa !== [] && ($ferias || $afastamentos))
+        <section class="card card-flush">
+            <div style="padding:22px 24px 8px"><h2>Prévia: {{ count($previa) }} {{ $ferias ? 'etapas de férias' : 'afastamentos' }}</h2></div>
+            <div class="tbl-wrap">
+                <table class="tbl">
+                    <thead><tr><th class="num">Linha</th><th>Servidor</th><th>Setor</th>@if ($ferias)<th>Período aquisitivo</th>@else<th>Tipo</th>@endif<th>Datas</th><th class="num">Dias</th>@if ($ferias)<th>Situação</th>@endif<th>Ação</th></tr></thead>
+                    <tbody>
+                        @foreach ($previa as $p)
+                            @php
+                                $de = \Illuminate\Support\Carbon::parse($p['dados']['inicio']);
+                                $ate = \Illuminate\Support\Carbon::parse($p['dados']['fim']);
+                                $selo = $ferias ? (new \App\Models\Ferias(['situacao' => $p['dados']['situacao'], 'inicio' => $de, 'fim' => $ate]))->selo() : null;
+                            @endphp
+                            <tr>
+                                <td class="num muted">{{ $p['linha'] }}</td>
+                                <td><b>{{ $p['servidor_nome'] }}</b></td>
+                                <td class="sigla">{{ $p['unidade_sigla'] ?? '—' }}</td>
+                                @if ($ferias)
+                                    <td class="small">{{ \Illuminate\Support\Carbon::parse($p['periodo_inicio'])->format('Y') }}/{{ \Illuminate\Support\Carbon::parse($p['periodo_inicio'])->addYear()->format('Y') }}</td>
+                                @else
+                                    <td class="small">{{ $p['dados']['tipo'] }}</td>
+                                @endif
+                                <td style="white-space:nowrap">{{ $de->format('d/m/Y') }} a {{ $ate->format('d/m/Y') }}</td>
+                                <td class="num">{{ $ferias ? $p['dados']['dias'] : $de->diffInDays($ate) + 1 }}</td>
+                                @if ($ferias)<td><span class="b {{ $selo[1] }}">{{ $selo[0] }}</span></td>@endif
+                                <td><span class="b {{ $p['existente_id'] ? 'b-info' : 'b-ok' }}">{{ $p['existente_id'] ? 'Atualiza' : ($ferias ? 'Nova' : 'Novo') }}</span></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @elseif ($previa !== [] && $dependentes)
         <section class="card card-flush">
             <div style="padding:22px 24px 8px"><h2>Prévia: {{ count($previa) }} dependentes</h2><p class="hint">CPF mascarado.</p></div>
             <div class="tbl-wrap">
@@ -121,7 +168,9 @@
                     <thead><tr><th class="num">Linha</th><th>Servidor titular</th><th>Dependente</th><th>Parentesco</th><th>Finalidades</th><th>Ação</th></tr></thead>
                     <tbody>
                         @foreach ($previa as $p)
-                            @php($dep = new \App\Models\Dependente($p['dados']))
+                            @php
+                                $dep = new \App\Models\Dependente($p['dados']);
+                            @endphp
                             <tr>
                                 <td class="num muted">{{ $p['linha'] }}</td>
                                 <td>{{ $p['servidor_nome'] }}</td>
@@ -164,7 +213,9 @@
                     <thead><tr><th>Cargo</th><th>Símbolo</th><th>Natureza</th><th class="num">Remuneração</th><th class="num">Total</th><th class="num">Remanej.</th><th class="num">Ocupados</th><th class="num">Vagos</th></tr></thead>
                     <tbody>
                         @foreach ($previa as $c)
-                            @php($s = array_count_values(array_column($c['vagas'], 'situacao')))
+                            @php
+                                $s = array_count_values(array_column($c['vagas'], 'situacao'));
+                            @endphp
                             <tr>
                                 <td><b>{{ $c['denominacao'] }}</b></td>
                                 <td class="sigla">{{ $c['simbolo'] }}</td>

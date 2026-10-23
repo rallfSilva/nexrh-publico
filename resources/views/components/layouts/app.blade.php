@@ -44,7 +44,12 @@
                     @if ($aValidar)<em class="cnt" aria-label="{{ $aValidar }} aguardando">{{ $aValidar }}</em>@endif
                 </a>
             @endcan
-            <span class="soon"><x-icone nome="ferias" />Férias<em>Entrega 5</em></span>
+            @can('ver-escala')
+                @php($feriasAAprovar = $user->can('aprovar-ferias') ? \App\Models\Ferias::aAprovarPor($user)->count() : 0)
+                <a href="{{ route('ferias.escala') }}" class="{{ $nav('ferias.*') || $nav('afastamentos.*') ? 'on' : '' }}"><x-icone nome="ferias" />Férias
+                    @if ($feriasAAprovar)<em class="cnt" aria-label="{{ $feriasAAprovar }} a aprovar">{{ $feriasAAprovar }}</em>@endif
+                </a>
+            @endcan
 
             <span class="cap">Administração</span>
             @can('usuarios.ver')
@@ -57,8 +62,8 @@
             <a href="{{ route('seguranca') }}" class="{{ $nav('seguranca') }}"><x-icone nome="escudo" />Minha segurança</a>
         </nav>
         <div class="foot">
-            Fase 1 · Entrega 4<br>
-            Dossiê digital e dependentes.
+            Fase 1 · Entrega 5<br>
+            Férias, afastamentos e escala do setor.
         </div>
     </aside>
 

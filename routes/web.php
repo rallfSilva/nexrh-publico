@@ -1,15 +1,18 @@
 <?php
 
+use App\Http\Controllers\AfastamentoController;
 use App\Http\Controllers\AuditoriaController;
 use App\Http\Controllers\CargoController;
 use App\Http\Controllers\DeclaracaoController;
 use App\Http\Controllers\DependenteController;
 use App\Http\Controllers\DocumentoController;
+use App\Http\Controllers\FeriasController;
 use App\Http\Controllers\ImportacaoController;
 use App\Http\Controllers\MinhaFichaController;
 use App\Http\Controllers\ModeloImportacaoController;
 use App\Http\Controllers\OrgaoController;
 use App\Http\Controllers\PainelController;
+use App\Http\Controllers\RegraFeriasController;
 use App\Http\Controllers\SegurancaController;
 use App\Http\Controllers\ServidorController;
 use App\Http\Controllers\UnidadeController;
@@ -99,6 +102,27 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         Route::get('/servidores/{servidor}/documentos/{documento}/arquivo', [DocumentoController::class, 'arquivo'])
             ->whereNumber(['servidor', 'documento'])->scopeBindings()->middleware(['can:servidores.dados_pessoais', 'throttle:60,1'])->name('documentos.arquivo');
 
+        // Férias: escala do setor para RH, auditoria e chefia; aprovação pela chefia (equipe) ou RH; marcação pelo RH.
+        Route::get('/ferias', [FeriasController::class, 'escala'])->middleware('can:ver-escala')->name('ferias.escala');
+        Route::middleware('can:aprovar-ferias')->whereNumber(['servidor', 'ferias'])->scopeBindings()->group(function () {
+            Route::get('/ferias/a-aprovar', [FeriasController::class, 'pendentes'])->name('ferias.pendentes');
+            Route::post('/servidores/{servidor}/ferias/{ferias}/aprovar', [FeriasController::class, 'aprovar'])->name('ferias.aprovar');
+            Route::post('/servidores/{servidor}/ferias/{ferias}/recusar', [FeriasController::class, 'recusar'])->name('ferias.recusar');
+        });
+        Route::middleware('can:ferias.gerenciar')->whereNumber(['servidor', 'ferias', 'afastamento'])->scopeBindings()->group(function () {
+            Route::get('/ferias/regras', [RegraFeriasController::class, 'edit'])->name('ferias.regras');
+            Route::put('/ferias/regras', [RegraFeriasController::class, 'update'])->name('ferias.regras.update');
+            Route::get('/servidores/{servidor}/ferias/marcar', [FeriasController::class, 'create'])->name('ferias.create');
+            Route::post('/servidores/{servidor}/ferias', [FeriasController::class, 'store'])->name('ferias.store');
+            Route::post('/servidores/{servidor}/ferias/data-base', [FeriasController::class, 'dataBase'])->name('ferias.data-base');
+            Route::get('/servidores/{servidor}/ferias/sugestoes', [FeriasController::class, 'sugestoes'])->middleware('throttle:60,1')->name('ferias.sugestoes');
+            Route::post('/servidores/{servidor}/ferias/{ferias}/cancelar', [FeriasController::class, 'cancelar'])->name('ferias.cancelar');
+            Route::post('/servidores/{servidor}/ferias/{ferias}/interromper', [FeriasController::class, 'interromper'])->name('ferias.interromper');
+            Route::get('/servidores/{servidor}/afastamentos/novo', [AfastamentoController::class, 'create'])->name('afastamentos.create');
+            Route::post('/servidores/{servidor}/afastamentos', [AfastamentoController::class, 'store'])->name('afastamentos.store');
+            Route::post('/servidores/{servidor}/afastamentos/{afastamento}/cancelar', [AfastamentoController::class, 'cancelar'])->name('afastamentos.cancelar');
+        });
+
         Route::get('/servidores/{servidor}/ficha.pdf', [ServidorController::class, 'pdf'])
             ->whereNumber('servidor')->middleware(['can:servidores.dados_pessoais', 'throttle:30,1'])->name('servidores.pdf');
 
@@ -107,6 +131,11 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         Route::post('/minha-ficha/documentos', [MinhaFichaController::class, 'enviarDocumento'])->middleware('throttle:20,1')->name('minha-ficha.documentos.store');
         Route::get('/minha-ficha/documentos/{documento}/arquivo', [MinhaFichaController::class, 'arquivo'])
             ->whereNumber('documento')->middleware('throttle:60,1')->name('minha-ficha.documentos.arquivo');
+
+        Route::get('/minha-ficha/ferias/pedir', [MinhaFichaController::class, 'pedirFerias'])->name('minha-ficha.ferias.create');
+        Route::post('/minha-ficha/ferias', [MinhaFichaController::class, 'enviarPedidoFerias'])->middleware('throttle:20,1')->name('minha-ficha.ferias.store');
+        Route::get('/minha-ficha/ferias/sugestoes', [MinhaFichaController::class, 'sugestoesFerias'])->middleware('throttle:60,1')->name('minha-ficha.ferias.sugestoes');
+        Route::post('/minha-ficha/ferias/{ferias}/desistir', [MinhaFichaController::class, 'desistirFerias'])->whereNumber('ferias')->name('minha-ficha.ferias.desistir');
 
         Route::get('/auditoria', [AuditoriaController::class, 'index'])->middleware('can:auditoria.ver')->name('auditoria.index');
 

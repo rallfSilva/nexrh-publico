@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Ferias\Periodos;
 use App\Models\Cargo;
 use App\Models\Orgao;
 use App\Models\Servidor;
@@ -95,11 +96,13 @@ class ServidorController extends Controller
         return redirect()->route('servidores.show', $servidor)->with('sucesso', 'Servidor cadastrado e vaga marcada como ocupada. Registre agora as declarações de parentesco, acumulação e bens.');
     }
 
-    public function show(Request $request, Servidor $servidor): View
+    public function show(Request $request, Servidor $servidor, Periodos $periodos): View
     {
         // Dossiê e dependentes: só para quem vê os dados pessoais (RH e administração).
         $completo = $request->user()->can('servidores.dados_pessoais');
+        $periodos->sincronizar($servidor);
         $servidor->load(['unidade.chefe', 'vaga.cargo', 'usuario', 'declaracoes.registradaPor', 'eventos.usuario',
+            'periodosAquisitivos.ferias', 'ferias.analisadoPor', 'afastamentos',
             ...($completo ? ['documentos.enviadoPor', 'documentos.analisadoPor', 'dependentes'] : [])]);
 
         Auditoria::registrar('acesso', $servidor, 'Ficha de '.$servidor->nome.' consultada');
@@ -107,7 +110,7 @@ class ServidorController extends Controller
         return view('servidores.show', [
             'servidor' => $servidor,
             'completo' => $completo,
-            'pendencias' => [...$servidor->pendencias(), ...($completo ? $servidor->pendenciasDoDossie() : [])],
+            'pendencias' => [...$servidor->pendencias(), ...($completo ? $servidor->pendenciasDoDossie() : []), ...$servidor->pendenciasDeFerias()],
         ]);
     }
 

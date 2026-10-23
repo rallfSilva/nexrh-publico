@@ -33,7 +33,7 @@
     </form>
 </dialog>
 
-@if ($reabrir() && $errors->has('motivo'))
+@if ($reabrir() && $errors->has('motivo') && str_contains($reabrir(), '/documentos/'))
     <script type="module">document.getElementById('dialogo-motivo').showModal();</script>
 @elseif ($reabrir() && $errors->hasAny(['encerrado_em', 'motivo_encerramento']))
     <script type="module">document.getElementById('dialogo-encerrar').showModal();</script>

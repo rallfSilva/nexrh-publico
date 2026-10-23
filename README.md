@@ -2,9 +2,20 @@
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.
 
-> **Situação:** Fase 1, Entrega 4 (dossiê e dependentes). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
+> **Situação:** Fase 1, Entrega 5 (férias, afastamentos e escala do setor). Veja o que entra em cada entrega em [docs/plano-implementacao.md](docs/plano-implementacao.md).
 
 ## O que já funciona
+
+### Entrega 5: férias, afastamentos e escala do setor
+
+- **Regras de férias por órgão**, editáveis pelo RH em **Férias › Regras de férias**: dias por período, número de etapas, mínimo de dias por etapa, períodos que podem acumular e antecedência do pedido. As regras atuais são **provisórias** (30 dias, até 3 etapas de pelo menos 10 dias, no máximo 2 períodos acumulados, pedido com 30 dias de antecedência) até chegar a norma da SELC.
+- **Períodos aquisitivos** gerados sozinhos a partir do ingresso no órgão. Quem traz tempo de outro vínculo com o Estado pode ter outra data-base, ajustada pelo RH (ou pela importação) enquanto não há férias registradas.
+- **Pedido e aprovação**: o servidor pede em **Minha ficha**; a chefia do setor (ou o RH) aprova ou recusa com motivo, na fila **Férias a aprovar**. Ninguém aprova as próprias férias. O RH também marca direto, já aprovadas. Cancelar e interromper (com o motivo da lista da Lei 8.112, art. 80) devolvem o saldo.
+- **Bloqueio de conflitos**: o sistema não aceita férias que coincidam com outras férias ou afastamentos do servidor, nem que deixem o setor abaixo do **mínimo de presentes** da unidade. A mensagem diz o dia e quem já está fora.
+- **Sugestão de datas**: ao marcar ou pedir, aparecem as três próximas janelas livres, de preferência começando numa segunda-feira.
+- **Licenças e afastamentos** (13 tipos do modelo 06), com documento e processo SEI. O tipo só aparece para quem vê dados pessoais; os demais veem "Licença ou afastamento". Nada é apagado: cancela-se com motivo.
+- **Escala do setor**: grade do mês, dia a dia, com a linha de presentes (vermelha abaixo do mínimo), e mapa do ano. A chefia vê os setores que chefia.
+- **Importação dos modelos 05 e 06**, identificando o servidor pelo CPF, com exemplos **fictícios**: 14 afastamentos (3 linhas erradas de propósito) e 397 etapas de férias de 94 servidores (5 linhas erradas de propósito).
 
 ### Entrega 4: dossiê e dependentes
 
