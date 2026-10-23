@@ -129,7 +129,7 @@
                                 <li><b>Escala do setor:</b> em <b>Férias</b>, a grade do mês mostra quem está fora em cada dia e a linha "Presentes" fica vermelha se o setor ficar abaixo do mínimo. Troque para <b>Ano</b> para ver o mapa do ano.</li>
                                 <li><b>Frequência do setor:</b> em <b>Frequência</b>, o resumo do mês de cada pessoa da equipe: dias com registro, sem registro, incompletos, a verificar, abonados e o saldo de horas. Clique no nome para ver o espelho dia a dia.</li>
                                 <li><b>Justificativas:</b> em <b>Frequência › Justificativas</b> (o número no menu mostra quantas esperam), leia o motivo e o anexo e clique em <b>Abonar</b>, ou em <b>Recusar</b> informando o motivo, que o servidor vê. Ajustes de marcação são pedidos ao RH.</li>
-                                <li><b>Conferir o mês:</b> no início do mês, em <b>Frequência › Fechamento do mês</b>, decida as justificativas que faltam e clique em <b>Conferir</b> no seu setor, com uma observação para o RH se quiser. Dias sem justificativa contam como falta no boletim. O RH fecha o mês até o 5º dia útil.</li>
+                                <li><b>Conferir o mês:</b> no início do mês, em <b>Frequência › Fechamento do mês</b>, decida as justificativas que faltam e clique em <b>Conferir</b> no seu setor, com uma observação para o RH se quiser. Dias sem justificativa contam como falta no boletim. O RH fecha o mês até o dia 15.</li>
                                 <li>Seus próprios pedidos de férias vão para a chefia superior ou para o RH. Ninguém aprova as próprias férias.</li>
                             </ol>
                             {!! $figura('chefia-aprovar', 'Férias a aprovar, na visão da chefia.') !!}
@@ -233,7 +233,7 @@
                             </ol>
                             {!! $figura('frequencia', 'Espelho do ponto de um servidor, na visão do RH.') !!}
                             <ol class="passos" start="8">
-                                <li><b>Fechar o mês:</b> em <b>Frequência › Fechamento do mês</b>, até o 5º dia útil do mês seguinte, feche o mês de cada setor conferido pela chefia (ou de todos de uma vez, em <b>Fechar os conferidos</b>). Setor com justificativa em análise não fecha. O boletim fica guardado como estava.</li>
+                                <li><b>Fechar o mês:</b> em <b>Frequência › Fechamento do mês</b>, até o dia 15 do mês seguinte (ajustável em <b>Regras e feriados</b>), feche o mês de cada setor conferido pela chefia (ou de todos de uma vez, em <b>Fechar os conferidos</b>). Setor com justificativa em análise não fecha. O boletim fica guardado como estava.</li>
                                 <li><b>Mês fechado</b> não aceita marcação, anulação, jornada, justificativa, abono nem importação do relógio. Para corrigir, use <b>Reabrir</b> (com motivo), corrija e feche de novo.</li>
                                 <li><b>Boletim de frequência:</b> em <b>PDF</b> ou <b>Excel</b>, na tela de fechamento ou em <b>Relatórios › Boletim de frequência</b>, do órgão ou de um setor.</li>
                             </ol>

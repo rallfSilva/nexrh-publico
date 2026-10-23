@@ -64,15 +64,23 @@ class FechamentoTest extends TestCase
         }
     }
 
-    public function test_prazo_e_o_quinto_dia_util_do_mes_seguinte(): void
+    public function test_prazo_e_o_dia_15_do_mes_seguinte_ou_o_dia_util_depois(): void
     {
         $outubro = Carbon::parse('2026-10-01');
-        $this->assertSame('2026-11-06', Fechamento::prazo($this->orgao->id, $outubro)->format('Y-m-d'));
+        $this->assertSame('2026-11-16', Fechamento::prazo($this->orgao->id, $outubro)->format('Y-m-d')); // 15/11 é domingo
 
-        // Finados numa segunda: o prazo anda um dia útil. Ponto facultativo não conta como feriado.
-        Feriado::create(['orgao_id' => $this->orgao->id, 'data' => '2026-11-02', 'nome' => 'Finados', 'tipo' => 'nacional']);
-        Feriado::create(['orgao_id' => $this->orgao->id, 'data' => '2026-11-03', 'nome' => 'Facultativo fictício', 'tipo' => 'ponto_facultativo']);
-        $this->assertSame('2026-11-09', Fechamento::prazo($this->orgao->id, $outubro)->format('Y-m-d'));
+        // Feriado na segunda: anda mais um dia. Ponto facultativo não conta como feriado.
+        Feriado::create(['orgao_id' => $this->orgao->id, 'data' => '2026-11-16', 'nome' => 'Feriado fictício', 'tipo' => 'nacional']);
+        Feriado::create(['orgao_id' => $this->orgao->id, 'data' => '2026-11-17', 'nome' => 'Facultativo fictício', 'tipo' => 'ponto_facultativo']);
+        $this->assertSame('2026-11-17', Fechamento::prazo($this->orgao->id, $outubro)->format('Y-m-d'));
+
+        // O RH muda o dia nas regras.
+        $this->actingAs($this->rh)->put('/frequencia/regras', [
+            'turnos_6h' => '07:30-13:30', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15,
+            'exigir_rede' => 0, 'dia_fechamento' => 10,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame('2026-11-10', Fechamento::prazo($this->orgao->id, $outubro)->format('Y-m-d'));
+        $this->get('/frequencia/fechamento?mes=2026-10')->assertSee('Dia 10 de novembro');
     }
 
     public function test_chefia_confere_so_o_proprio_setor_e_sem_justificativa_em_analise(): void

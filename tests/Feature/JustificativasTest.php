@@ -248,7 +248,7 @@ class JustificativasTest extends TestCase
         // O RH tira o cargo da lista: passa a registrar ponto.
         $this->actingAs($this->rh)->get('/frequencia/regras')->assertSee('Cargos dispensados do ponto')->assertSee('Coordenador');
         $this->put('/frequencia/regras', [
-            'turnos_6h' => '07:30-13:30', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15,
+            'turnos_6h' => '07:30-13:30', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15, 'dia_fechamento' => 15,
             'exigir_rede' => '1', 'redes_permitidas' => '127.0.0.0/8',
         ])->assertSessionHasNoErrors();
         $this->assertSame([], RegraFrequencia::doOrgao($this->orgao->id)->cargos_dispensados);
@@ -257,7 +257,7 @@ class JustificativasTest extends TestCase
 
         $outro = Cargo::factory()->create();
         $this->put('/frequencia/regras', [
-            'turnos_6h' => '07:30-13:30', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15,
+            'turnos_6h' => '07:30-13:30', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15, 'dia_fechamento' => 15,
             'exigir_rede' => '1', 'redes_permitidas' => '127.0.0.0/8', 'cargos_dispensados' => [$outro->id],
         ])->assertSessionHasErrors('cargos_dispensados.0');
     }

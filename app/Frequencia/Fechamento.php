@@ -4,6 +4,7 @@ namespace App\Frequencia;
 
 use App\Models\FechamentoFrequencia;
 use App\Models\Feriado;
+use App\Models\RegraFrequencia;
 use App\Models\Servidor;
 use App\Models\Unidade;
 use App\Models\User;
@@ -17,26 +18,26 @@ use Illuminate\Validation\ValidationException;
  * não muda mais: nem marcação, nem justificativa, nem abono, nem importação do
  * relógio. O RH pode reabrir, com motivo, e fechar de novo.
  *
- * O prazo é o 5º dia útil do mês seguinte (sem sábados, domingos e feriados).
+ * O prazo é o dia 15 do mês seguinte (ajustável nas regras), ou o dia útil depois.
  */
 class Fechamento
 {
-    /** Dia útil do mês seguinte em que o mês deve estar fechado. */
-    public const DIA_UTIL_DO_PRAZO = 5;
-
+    /**
+     * Prazo para fechar o mês: o dia das regras do órgão (padrão 15) no mês seguinte.
+     * Se cair em fim de semana ou feriado, vale o dia útil seguinte.
+     */
     public static function prazo(int $orgaoId, Carbon $mes): Carbon
     {
-        $dia = $mes->copy()->startOfMonth()->addMonthNoOverflow()->startOfDay();
-        $feriados = Feriado::where('orgao_id', $orgaoId)->whereBetween('data', [$dia, $dia->copy()->addDays(20)])
+        $dia = $mes->copy()->startOfMonth()->addMonthNoOverflow()->startOfDay()
+            ->day(RegraFrequencia::doOrgao($orgaoId)->dia_fechamento);
+        $feriados = Feriado::where('orgao_id', $orgaoId)->whereBetween('data', [$dia, $dia->copy()->addDays(15)])
             ->where('tipo', '!=', 'ponto_facultativo')->get()->map(fn ($f) => $f->data->format('Y-m-d'))->flip();
 
-        $uteis = 0;
-        while (true) {
-            if (! $dia->isWeekend() && ! $feriados->has($dia->format('Y-m-d')) && ++$uteis === self::DIA_UTIL_DO_PRAZO) {
-                return $dia;
-            }
+        while ($dia->isWeekend() || $feriados->has($dia->format('Y-m-d'))) {
             $dia->addDay();
         }
+
+        return $dia;
     }
 
     /** Servidores que contam no mês do setor: os ativos e os desligados durante o mês. */
