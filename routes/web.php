@@ -8,6 +8,7 @@ use App\Http\Controllers\ChaveApiController;
 use App\Http\Controllers\DeclaracaoController;
 use App\Http\Controllers\DependenteController;
 use App\Http\Controllers\DocumentoController;
+use App\Http\Controllers\FechamentoController;
 use App\Http\Controllers\FeriasController;
 use App\Http\Controllers\FrequenciaController;
 use App\Http\Controllers\ImportacaoController;
@@ -159,6 +160,8 @@ Route::middleware(['auth', 'ativo'])->group(function () {
         Route::middleware('can:ver-frequencia')->group(function () {
             Route::get('/frequencia', [FrequenciaController::class, 'index'])->name('frequencia.index');
             Route::get('/servidores/{servidor}/frequencia', [FrequenciaController::class, 'espelho'])->whereNumber('servidor')->name('frequencia.espelho');
+            Route::get('/frequencia/fechamento', [FechamentoController::class, 'index'])->name('frequencia.fechamento');
+            Route::post('/frequencia/fechamento/{unidade}/conferir', [FechamentoController::class, 'conferir'])->whereNumber('unidade')->name('frequencia.fechamento.conferir');
         });
         Route::middleware('can:frequencia.gerenciar')->whereNumber(['servidor', 'registro', 'feriado'])->group(function () {
             Route::get('/frequencia/regras', [RegraFrequenciaController::class, 'edit'])->name('frequencia.regras');
@@ -170,6 +173,9 @@ Route::middleware(['auth', 'ativo'])->group(function () {
             Route::post('/servidores/{servidor}/frequencia/registros/{registro}/anular', [FrequenciaController::class, 'anular'])->name('frequencia.anular');
             Route::post('/servidores/{servidor}/frequencia/jornada', [FrequenciaController::class, 'jornada'])->name('frequencia.jornada');
             Route::post('/servidores/{servidor}/frequencia/abonos', [JustificativaController::class, 'abonarDireto'])->name('frequencia.abonar');
+            Route::post('/frequencia/fechamento/conferidos', [FechamentoController::class, 'fecharConferidos'])->name('frequencia.fechamento.conferidos');
+            Route::post('/frequencia/fechamento/{unidade}/fechar', [FechamentoController::class, 'fechar'])->whereNumber('unidade')->name('frequencia.fechamento.fechar');
+            Route::post('/frequencia/fechamento/{unidade}/reabrir', [FechamentoController::class, 'reabrir'])->whereNumber('unidade')->name('frequencia.fechamento.reabrir');
         });
 
         Route::middleware('can:ver-relatorios')->where(['chave' => '[a-z\-]+'])->group(function () {

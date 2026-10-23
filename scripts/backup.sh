@@ -1,10 +1,15 @@
 #!/bin/sh
 # Cópia de segurança do NexRH Público: banco de dados + arquivos enviados.
-# Uso: ./scripts/backup.sh [pasta-destino]      (padrão: ./backups)
-# Agende diariamente (ex.: cron "0 2 * * * cd /opt/nexrh && ./scripts/backup.sh").
+# Uso: ./scripts/backup.sh [pasta-destino]      (padrão: backups, na pasta do sistema)
+# Agende diariamente (ex.: cron "0 2 * * * /opt/nexrh/scripts/backup.sh").
+# Pode rodar de qualquer pasta: o script sempre usa a pasta do NexRH onde ele está.
 set -eu
 
-DESTINO="${1:-./backups}"
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+[ -f "$RAIZ/artisan" ] && [ -f "$RAIZ/docker-compose.yml" ] || { echo "A pasta $RAIZ não é a do NexRH Público." >&2; exit 1; }
+DESTINO="${1:-$RAIZ/backups}"
+case "$DESTINO" in /*) ;; *) DESTINO="$(pwd)/$DESTINO" ;; esac
+cd "$RAIZ"
 DATA="$(date +%Y-%m-%d_%H%M%S)"
 PASTA="$DESTINO/nexrh_$DATA"
 MANTER_DIAS="${NEXRH_BACKUP_DIAS:-30}"

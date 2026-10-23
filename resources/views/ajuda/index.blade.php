@@ -10,7 +10,7 @@
         'rh-importar' => ['Importar planilhas', ['rh', 'administrador-orgao']],
         'rh-dossie' => ['Dossiê e dependentes', ['rh', 'administrador-orgao']],
         'rh-ferias' => ['Férias e afastamentos', ['rh', 'administrador-orgao']],
-        'rh-frequencia' => ['Frequência: jornadas, ajustes e relógio de ponto', ['rh', 'administrador-orgao']],
+        'rh-frequencia' => ['Frequência: jornadas, ajustes, relógio e fechamento', ['rh', 'administrador-orgao']],
         'relatorios' => ['Painel e relatórios', ['rh', 'administrador-orgao', 'chefia', 'auditor']],
         'admin' => ['Administração do órgão', ['administrador-orgao', 'administrador-geral']],
         'api' => ['API de consulta', ['administrador-orgao', 'administrador-geral']],
@@ -129,6 +129,7 @@
                                 <li><b>Escala do setor:</b> em <b>Férias</b>, a grade do mês mostra quem está fora em cada dia e a linha "Presentes" fica vermelha se o setor ficar abaixo do mínimo. Troque para <b>Ano</b> para ver o mapa do ano.</li>
                                 <li><b>Frequência do setor:</b> em <b>Frequência</b>, o resumo do mês de cada pessoa da equipe: dias com registro, sem registro, incompletos, a verificar, abonados e o saldo de horas. Clique no nome para ver o espelho dia a dia.</li>
                                 <li><b>Justificativas:</b> em <b>Frequência › Justificativas</b> (o número no menu mostra quantas esperam), leia o motivo e o anexo e clique em <b>Abonar</b>, ou em <b>Recusar</b> informando o motivo, que o servidor vê. Ajustes de marcação são pedidos ao RH.</li>
+                                <li><b>Conferir o mês:</b> no início do mês, em <b>Frequência › Fechamento do mês</b>, decida as justificativas que faltam e clique em <b>Conferir</b> no seu setor, com uma observação para o RH se quiser. Dias sem justificativa contam como falta no boletim. O RH fecha o mês até o 5º dia útil.</li>
                                 <li>Seus próprios pedidos de férias vão para a chefia superior ou para o RH. Ninguém aprova as próprias férias.</li>
                             </ol>
                             {!! $figura('chefia-aprovar', 'Férias a aprovar, na visão da chefia.') !!}
@@ -205,6 +206,7 @@
                                         <tr><td><code>GET /api/v1/servidores/{id}</code></td><td>servidores</td><td>Um servidor.</td></tr>
                                         <tr><td><code>GET /api/v1/ferias</code></td><td>ferias</td><td>Etapas aprovadas, aguardando aprovação e interrompidas entre <code>de</code> e <code>ate</code> (AAAA-MM-DD; padrão: hoje e os 90 dias seguintes). Filtro <code>unidade</code>.</td></tr>
                                         <tr><td><code>GET /api/v1/ausencias</code></td><td>ferias</td><td>Quem está fora entre <code>de</code> e <code>ate</code>: férias ou "licença ou afastamento", sem o tipo.</td></tr>
+                                        <tr><td><code>GET /api/v1/frequencia?mes=AAAA-MM</code></td><td>frequencia</td><td>Boletim dos setores já fechados pelo RH: por servidor, faltas, abonados, incompletos, férias, afastamentos e minutos esperados e trabalhados. Os setores ainda abertos vêm em <code>setores_abertos</code>. Filtro <code>unidade</code>.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -230,7 +232,12 @@
                                 <li><b>Relógio de ponto:</b> em <b>Frequência › Importar relógio de ponto</b>, envie o arquivo AFD (.txt) exportado do relógio, nos leiautes da Portaria 671/2021 ou 1.510/2009. O sistema acha o servidor pelo CPF ou pelo PIS da ficha, mostra a prévia e só grava ao confirmar. Reenviar o mesmo arquivo não duplica.</li>
                             </ol>
                             {!! $figura('frequencia', 'Espelho do ponto de um servidor, na visão do RH.') !!}
-                            <div class="nota"><x-icone nome="alerta" tamanho="18" /><span>O fechamento do mês e o boletim de frequência para a folha chegam na próxima entrega.</span></div>
+                            <ol class="passos" start="8">
+                                <li><b>Fechar o mês:</b> em <b>Frequência › Fechamento do mês</b>, até o 5º dia útil do mês seguinte, feche o mês de cada setor conferido pela chefia (ou de todos de uma vez, em <b>Fechar os conferidos</b>). Setor com justificativa em análise não fecha. O boletim fica guardado como estava.</li>
+                                <li><b>Mês fechado</b> não aceita marcação, anulação, jornada, justificativa, abono nem importação do relógio. Para corrigir, use <b>Reabrir</b> (com motivo), corrija e feche de novo.</li>
+                                <li><b>Boletim de frequência:</b> em <b>PDF</b> ou <b>Excel</b>, na tela de fechamento ou em <b>Relatórios › Boletim de frequência</b>, do órgão ou de um setor.</li>
+                            </ol>
+                            {!! $figura('fechamento', 'Fechamento do mês: setores conferidos, fechados e abertos.') !!}
                             @break
 
                         @case('duvidas')

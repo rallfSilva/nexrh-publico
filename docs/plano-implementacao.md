@@ -17,7 +17,7 @@
 |---|---|---|
 | 7 | Jornada e registro do ponto: meu ponto, espelho, frequência do setor, feriados, importação do relógio | Em teste pelo cliente |
 | 8 | Ocorrências e abonos: justificativas do servidor, decisão da chefia, abonos pelo RH | Em teste pelo cliente |
-| 9 | Fechamento do mês e boletim de frequência para a folha | Prevista |
+| 9 | Fechamento do mês e boletim de frequência para a folha | Em teste pelo cliente |
 
 ## Pendências do cliente
 
@@ -25,6 +25,7 @@
 - Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
 - Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
 - Decreto de pontos facultativos do Estado, para conferir o calendário em **Frequência › Regras e feriados**. Já respondido pela SELC: jornada 07:30 às 13:30, tolerância de 15 minutos, sem banco de horas, secretário, adjunto e coordenadores não registram ponto, sem relógio de ponto.
+- Fechamento do mês: confirmar o prazo (premissa: 5º dia útil do mês seguinte) e se o boletim do NexRH (colunas do relatório **Boletim de frequência**) atende ao que vai para a folha, ou se há um modelo a seguir.
 - Faixas de rede (IP) das sedes do órgão, de onde o ponto pode ser registrado.
 - Integração com o sistema da DTI que registra o ponto ao entrar no computador: formato dos dados, se a SELC quiser trazê-los para o NexRH.
 - Onde o sistema vai ficar hospedado. Enquanto não se decide, a premissa é o computador local (Windows com Docker), com a cópia de segurança diária pelo Agendador de Tarefas.
@@ -87,6 +88,20 @@ Use só os dados fictícios da demonstração e a planilha `exemplo_dependentes_
 11. Entrar como `servidor.selc@nexrh.local`: em **Minha ficha**, aba Dossiê, ver o motivo da recusa e enviar um documento (fica aguardando validação). Ver os próprios dependentes, sem poder alterar.
 12. Entrar como `auditor.selc@nexrh.local` e como `chefia.dti@nexrh.local`: as abas Dossiê e Dependentes não aparecem, e os endereços dos arquivos não abrem (acesso negado ou página não encontrada).
 13. Entrar como `admin.sedemo@nexrh.local` e confirmar que nada do dossiê da SELC aparece.
+
+## Entrega 9: o que testar
+
+Use só os dados fictícios da demonstração. O mês testado é o anterior ao atual.
+
+1. Entrar como `rh.selc@nexrh.local`: o **Painel** mostra o cartão **Fechamento do mês** (setores fechados e prazo). Abrir **Frequência › Fechamento do mês**: a COAM já está **conferida e fechada** na demonstração; os outros setores estão abertos, e a DTI tem justificativa em análise, por isso Conferir e Fechar ficam desligados nela.
+2. Baixar o **Boletim em PDF** e em **Excel**, do órgão e de um setor (ícone na linha). A COAM sai como "Fechado em ...".
+3. Abrir o espelho de alguém da COAM no mês fechado: aparece o aviso **Mês fechado** e não há botões de anular ou abonar no dia. Tentar **Incluir marcação** ou **Abonar dias** com data do mês fechado: o sistema recusa.
+4. Entrar como `chefia.dti@nexrh.local`, decidir a justificativa em análise em **Justificativas** e voltar ao **Fechamento do mês**: agora dá para **Conferir**, com uma observação para o RH.
+5. Voltar como RH: usar **Fechar os conferidos** (ou **Fechar** na linha da DTI). Depois, **Reabrir** a DTI: o motivo é obrigatório. Fechar de novo.
+6. Entrar como `servidor.selc@nexrh.local` (DTI): com o mês fechado, os dias dele saem de **Ocorrências para justificar** e o espelho mostra o aviso.
+7. Em **Importar planilha** › Relógio de ponto, enviar o exemplo fictício: marcações de mês fechado aparecem como erro e não entram.
+8. Como `admin.selc@nexrh.local`, criar em **Chaves de API** uma chave com o escopo **frequência** e consultar `/api/v1/frequencia?mes=AAAA-MM`: vêm só os setores fechados, e os abertos aparecem em `setores_abertos`.
+9. Na **Trilha de auditoria**, o fechamento, a conferência e a reabertura aparecem com quem fez e quando.
 
 ## Entrega 8: o que testar
 

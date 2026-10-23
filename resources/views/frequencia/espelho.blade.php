@@ -50,7 +50,7 @@
         @endif
     </section>
 
-    @include('frequencia.partes.espelho', ['corrigir' => $corrigir])
+    @include('frequencia.partes.espelho', ['corrigir' => $corrigir, 'fechamento' => $fechamento])
 
     @if ($corrigir)
         <dialog class="modal" id="dialogo-incluir" aria-labelledby="t-incluir">

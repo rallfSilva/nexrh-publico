@@ -10,3 +10,6 @@
 @if (session('status'))
     <div class="flash flash-ok" role="status"><x-icone nome="ok" style="flex:none" /><div>{{ __(session('status')) }}</div></div>
 @endif
+@error('fechamento')
+    <div class="flash flash-erro" role="alert"><x-icone nome="alerta" style="flex:none" /><div>{{ $message }}</div></div>
+@enderror

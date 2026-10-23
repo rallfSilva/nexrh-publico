@@ -30,6 +30,7 @@ class MeuPontoController extends Controller
             'servidor' => $servidor,
             'mes' => $mes,
             'calculo' => $espelho->calcular($servidor, $request->user()),
+            'fechamento' => $espelho->fechamentoDe($servidor),
             'hoje' => $hoje,
             'impedimento' => $marcador->impedimento($servidor, $request->ip(), $hojeEspelho),
             'jornadaHoje' => $hojeEspelho->jornadaEm($servidor, today()),

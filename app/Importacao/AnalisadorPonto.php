@@ -2,6 +2,7 @@
 
 namespace App\Importacao;
 
+use App\Frequencia\Fechamento;
 use App\Models\RegistroPonto;
 use App\Models\Servidor;
 use App\Support\Cpf;
@@ -120,12 +121,23 @@ class AnalisadorPonto
         if ($jaRegistradas > 0) {
             $this->divergir('aviso', null, $jaRegistradas.' marcação(ões) já estão no sistema e serão ignoradas.');
         }
+        // Meses já fechados pelo RH não recebem marcação nova.
+        $emFechado = [];
+        if ($marcacoes !== []) {
+            $fechados = Fechamento::mesesFechados($servidores->whereIn('id', array_column($marcacoes, 'servidor_id'))->pluck('unidade_id', 'id')->all());
+            $emFechado = array_filter($marcacoes, fn ($m) => isset($fechados[$m['servidor_id'].'|'.substr($m['momento'], 0, 7)]));
+            if ($emFechado !== []) {
+                $meses = collect($emFechado)->map(fn ($m) => substr($m['momento'], 5, 2).'/'.substr($m['momento'], 0, 4))->unique()->sort()->implode(', ');
+                $this->divergir('erro', null, 'Não serão importadas: '.count($emFechado).' marcação(ões) de mês já fechado pelo RH ('.$meses.'). Para incluir, o RH reabre o mês do setor.');
+                $marcacoes = array_values(array_diff_key($marcacoes, $emFechado));
+            }
+        }
         $futuras = array_filter($marcacoes, fn ($m) => Carbon::parse($m['momento'])->isFuture());
         if ($futuras !== []) {
             $this->divergir('bloqueia', null, count($futuras).' marcação(ões) com data no futuro. Confira a data e a hora do relógio de ponto antes de importar.');
         }
 
-        return $this->resultado($formato ?? 'afd_671', $marcacoes, $total, $jaRegistradas, $ilegiveis + array_sum($semServidor));
+        return $this->resultado($formato ?? 'afd_671', $marcacoes, $total, $jaRegistradas, $ilegiveis + array_sum($semServidor) + count($emFechado));
     }
 
     /** @return array{0: ?Carbon, 1: ?string, 2: ?string, 3: ?string} momento, identificador, tipo (cpf ou pis), leiaute */

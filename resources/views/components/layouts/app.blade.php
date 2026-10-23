@@ -78,8 +78,8 @@
             <a href="{{ route('ajuda.index') }}" class="{{ $nav('ajuda.*') }}"><x-icone nome="ajuda" />Ajuda</a>
         </nav>
         <div class="foot">
-            Fase 2 · Entrega 8<br>
-            Frequência: ocorrências e abonos.
+            Fase 2 · Entrega 9<br>
+            Frequência: fechamento do mês e boletim.
         </div>
     </aside>
 

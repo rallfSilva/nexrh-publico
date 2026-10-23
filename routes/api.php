@@ -12,4 +12,5 @@ Route::prefix('v1')->middleware(['api.chave', 'throttle:api-chave'])->group(func
     Route::get('/servidores/{id}', [ConsultaController::class, 'servidor'])->whereNumber('id')->middleware('api.chave:servidores');
     Route::get('/ferias', [ConsultaController::class, 'ferias'])->middleware('api.chave:ferias');
     Route::get('/ausencias', [ConsultaController::class, 'ausencias'])->middleware('api.chave:ferias');
+    Route::get('/frequencia', [ConsultaController::class, 'frequencia'])->middleware('api.chave:frequencia');
 });

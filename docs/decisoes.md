@@ -114,7 +114,7 @@ O relógio de ponto (REP) entra pelo arquivo AFD, que todos os modelos exportam,
 
 ## Justificativa abona o dia inteiro
 
-Dia abonado conta como trabalhado, com a jornada inteira, no espelho e no saldo, sem distinguir atraso de falta. A SELC não usa banco de horas nem compensação. O servidor justifica até o fim do mês seguinte; depois, só o RH abona. Atestado vale para até 15 dias seguidos; mais que isso é licença, registrada pelo RH como afastamento.
+Dia abonado conta como trabalhado, com a jornada inteira, no espelho e no saldo, sem distinguir atraso de falta. A SELC não usa banco de horas nem compensação. O servidor justifica até o fim do mês seguinte, ou até o RH fechar o mês do setor; depois, só o RH abona (reabrindo o mês, se já fechou). Atestado vale para até 15 dias seguidos; mais que isso é licença, registrada pelo RH como afastamento.
 
 ## Quem decide a justificativa
 
@@ -135,3 +135,15 @@ O sistema calcula os feriados nacionais (inclusive os móveis, pela data da Pás
 ## Manual dentro do sistema
 
 O manual fica em **Ajuda**, na mesma versão do sistema instalado, e marca as partes do perfil de quem está lendo. As imagens usam só dados fictícios. A TI tem um guia à parte, em `docs/guia-ti.md`.
+
+## Fechamento do mês por setor
+
+O mês fecha setor a setor, porque cada chefia confere a própria equipe em tempos diferentes. A chefia confere (sem justificativa em análise) e o RH fecha; o RH também pode fechar sem a conferência, para não travar a folha quando a chefia está ausente, e a tela avisa. O prazo é o 5º dia útil do mês seguinte (premissa a confirmar com a SELC). No fechamento, o boletim do setor é guardado como estava: o boletim de mês fechado e a API saem dessa cópia, que não muda mesmo se a jornada ou o cadastro mudarem depois. O servidor que muda de setor segue o setor atual.
+
+## Mês fechado não muda
+
+Com o mês fechado, nada que mexe nos números entra: marcação (pelo sistema, pelo RH ou pelo relógio), anulação, nova jornada que comece no mês, justificativa, decisão e abono. Para corrigir, o RH reabre o mês com motivo; o boletim guardado é descartado e refeito no novo fechamento. A conferência da chefia continua valendo. Tudo fica na trilha de auditoria.
+
+## Boletim para a folha
+
+A SELC não tem modelo de boletim, então vale o do NexRH: por servidor, dias de trabalho, dias com registro, faltas, abonados, incompletos, a verificar, férias, afastamentos, horas feitas e esperadas e saldo. Sai em PDF, Excel e pela API (escopo **frequência**, só meses fechados, sem motivos nem anexos).

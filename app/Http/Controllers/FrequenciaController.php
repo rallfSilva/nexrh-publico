@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Frequencia\Espelho;
+use App\Frequencia\Fechamento;
 use App\Frequencia\Turnos;
 use App\Models\Jornada;
 use App\Models\RegistroPonto;
@@ -71,6 +72,7 @@ class FrequenciaController extends Controller
             'servidor' => $servidor->load('unidade'),
             'mes' => $mes,
             'calculo' => $espelho->calcular($servidor, $request->user()),
+            'fechamento' => $espelho->fechamentoDe($servidor),
             'jornadaAtual' => $espelho->jornadaEm($servidor, today()),
             'jornadas' => $servidor->jornadas()->with('registradoPor:id,name')->get(),
             'regra' => $espelho->regra(),
@@ -91,6 +93,9 @@ class FrequenciaController extends Controller
         ]);
 
         $momento = Carbon::parse($dados['data'].' '.$dados['hora']);
+        if (Fechamento::estaFechado($servidor, $momento)) {
+            throw Fechamento::erroMesFechado('data', $momento->format('m/Y'));
+        }
         if ($momento->isFuture()) {
             return back()->withErrors(['hora' => 'Não dá para incluir marcação no futuro.'])->withInput();
         }
@@ -117,6 +122,9 @@ class FrequenciaController extends Controller
     {
         abort_unless($registro->servidor_id === $servidor->id, 404);
         abort_unless($registro->valido(), 409);
+        if (Fechamento::estaFechado($servidor, $registro->momento)) {
+            throw Fechamento::erroMesFechado('motivo_anulacao', $registro->momento->format('m/Y'));
+        }
         $motivo = $request->validate(['motivo_anulacao' => ['required', 'string', 'max:255']], ['motivo_anulacao.required' => 'Diga por que a marcação está sendo anulada.'])['motivo_anulacao'];
 
         $registro->update(['anulado_em' => now(), 'anulado_por' => $request->user()->id, 'motivo_anulacao' => $motivo]);
@@ -151,6 +159,9 @@ class FrequenciaController extends Controller
         }
 
         $inicio = Carbon::parse($dados['inicio']);
+        if ($fechado = Fechamento::primeiroFechadoEntre($servidor, $inicio, today()->max($inicio))) {
+            throw Fechamento::erroMesFechado('inicio', $fechado);
+        }
         $dias = array_values(array_unique(array_map('intval', $dados['dias_semana'])));
         sort($dias);
 

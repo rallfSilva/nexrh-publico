@@ -104,5 +104,5 @@
         </section>
     </div>
 
-    @include('frequencia.partes.espelho', ['corrigir' => false, 'justificar' => true])
+    @include('frequencia.partes.espelho', ['corrigir' => false, 'justificar' => true, 'fechamento' => $fechamento])
 </x-layouts.app>

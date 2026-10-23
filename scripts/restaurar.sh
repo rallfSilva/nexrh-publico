@@ -4,6 +4,11 @@
 set -eu
 
 PASTA="${1:?Informe a pasta da cópia, ex.: ./backups/nexrh_2026-10-22_020000}"
+case "$PASTA" in /*) ;; *) PASTA="$(pwd)/$PASTA" ;; esac
+# Sempre na pasta do NexRH (a deste script), seja qual for a pasta atual.
+RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
+[ -f "$RAIZ/artisan" ] && [ -f "$RAIZ/docker-compose.yml" ] || { echo "A pasta $RAIZ não é a do NexRH Público." >&2; exit 1; }
+cd "$RAIZ"
 
 [ -f "$PASTA/banco.dump" ] || { echo "Não achei $PASTA/banco.dump" >&2; exit 1; }
 ( cd "$PASTA" && sha256sum -c SHA256SUMS ) || { echo "A cópia está corrompida (soma de verificação não confere)." >&2; exit 1; }

@@ -62,6 +62,10 @@ class Justificador
             throw ValidationException::withMessages(['inicio' => 'O prazo para justificar vai até o mês anterior. Para dias mais antigos, fale com o RH.']);
         }
 
+        if ($fechado = Fechamento::primeiroFechadoEntre($servidor, $inicio, $fim)) {
+            throw Fechamento::erroMesFechado('inicio', $fechado);
+        }
+
         $ativa = Justificativa::ativas()->where('servidor_id', $servidor->id)->entre($inicio, $fim)->first();
         if ($ativa) {
             throw ValidationException::withMessages(['inicio' => 'Já há uma justificativa '.($ativa->situacao === 'pendente' ? 'em análise' : 'abonada').' para '.$ativa->periodoTexto().'.']);

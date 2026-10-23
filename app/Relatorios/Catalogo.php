@@ -13,6 +13,7 @@ class Catalogo
         Ferias::class,
         SaldoDeFerias::class,
         Afastamentos::class,
+        BoletimDeFrequencia::class,
         Pendencias::class,
         Dependentes::class,
     ];

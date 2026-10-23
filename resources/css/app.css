@@ -72,6 +72,7 @@
     .btn-d:hover { background: #FDF2F2; color: #7F1414; }
     .btn-sm { min-height: 36px; padding: 0 12px; font-size: 13px; border-radius: 10px; }
     .btn-full { width: 100%; }
+    .btn:disabled, .btn:disabled:hover { opacity: .45; cursor: not-allowed; background: #fff; color: var(--color-texto2); border-color: #C9DCE8; }
 
     .card { background: #fff; border: 1px solid var(--color-linha); border-radius: 18px; padding: 22px 24px; box-shadow: 0 1px 2px rgba(30,84,112,.04), 0 12px 28px -18px rgba(30,84,112,.18); min-width: 0; }
     .card h2 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -.01em; }
@@ -464,6 +465,13 @@
     .feriado-novo { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--color-linha); }
     .feriado-novo h3 { margin: 0 0 10px; font-size: 15px; }
     .btn-xs { min-height: 30px; padding: 0 10px; font-size: 12.5px; border-radius: 8px; gap: 5px; margin-top: 6px; }
+    .fech-kpis { margin: 0; }
+    .fech-cab { margin-bottom: 8px; align-items: center; }
+    .fech-mes { display: flex; gap: 8px; }
+    .fech-mes select { font-size: 17px; font-weight: 700; color: var(--color-marinho); min-width: 230px; }
+    .fech-setor .txt .fech-num.ruim { color: #9F1D1D; font-weight: 600; }
+    .fech-setor .txt .fech-num.atencao { color: #9A3412; font-weight: 600; }
+    .mes-fechado { margin: 0 20px 14px; }
     .just-dia { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 5px; font-size: 12.5px; color: var(--color-texto2); }
     .just-dia .motivo { flex-basis: 100%; color: #9F1D1D; }
     .ocorrencias { list-style: none; margin: 0; padding: 0; }

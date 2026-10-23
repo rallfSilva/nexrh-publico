@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Afastamento;
 use App\Models\Cargo;
 use App\Models\ChaveApi;
+use App\Models\FechamentoFrequencia;
 use App\Models\Ferias;
 use App\Models\Servidor;
 use App\Models\Unidade;
@@ -35,6 +36,7 @@ class ConsultaController extends Controller
                 'cargos' => '/api/v1/cargos',
                 'servidores' => '/api/v1/servidores',
                 'ferias' => '/api/v1/ferias',
+                'frequencia' => '/api/v1/frequencia?mes='.today()->subMonthNoOverflow()->format('Y-m'),
             ])->only($chave->escopos)->put('ausencias', $chave->permite('ferias') ? '/api/v1/ausencias' : null)->filter()->all(),
         ]);
     }
@@ -165,6 +167,49 @@ class ConsultaController extends Controller
                 'inicio' => $a['inicio']->toDateString(),
                 'fim' => $a['fim']->toDateString(),
                 'motivo' => $a['motivo'],
+            ]),
+        ]);
+    }
+
+    /**
+     * Boletim de frequência de um mês, só dos setores que o RH já fechou (o que não
+     * muda mais). Os setores ainda abertos vêm listados à parte, sem números.
+     */
+    public function frequencia(Request $request): JsonResponse
+    {
+        $f = $request->validate([
+            'mes' => ['required', 'date_format:Y-m'],
+            'unidade' => ['nullable', 'integer'],
+        ], ['mes.required' => 'Informe o mês: ?mes=AAAA-MM.']);
+        $mes = Carbon::createFromFormat('!Y-m', $f['mes']);
+
+        $fechamentos = FechamentoFrequencia::with('unidade:id,sigla')->whereDate('mes', $mes)
+            ->when($f['unidade'] ?? null, fn ($q, $u) => $q->where('unidade_id', $u))->get();
+        $fechados = $fechamentos->filter->fechado();
+        $setores = Servidor::where('situacao', 'ativo')->whereNotNull('unidade_id')->when($f['unidade'] ?? null, fn ($q, $u) => $q->where('unidade_id', $u))
+            ->distinct()->pluck('unidade_id');
+        $abertos = Unidade::whereIn('id', $setores->diff($fechados->pluck('unidade_id')))->orderBy('sigla')->pluck('sigla');
+
+        return $this->json([
+            'mes' => $mes->format('Y-m'),
+            'setores_abertos' => $abertos->values(),
+            'dados' => $fechados->sortBy(fn ($x) => $x->unidade?->sigla)->values()->map(fn (FechamentoFrequencia $x) => [
+                'unidade' => ['id' => $x->unidade_id, 'sigla' => $x->unidade?->sigla],
+                'fechado_em' => $x->fechado_em->toIso8601String(),
+                'servidores' => collect($x->boletim)->map(fn (array $l) => [
+                    'servidor' => ['id' => $l['servidor_id'], 'nome' => $l['servidor'], 'matricula' => $l['matricula']],
+                    'vinculo' => $l['vinculo'],
+                    'dias_de_trabalho' => $l['dias_trabalho'],
+                    'dias_com_registro' => $l['com_registro'],
+                    'faltas' => $l['faltas'],
+                    'abonados' => $l['abonados'],
+                    'incompletos' => $l['incompletos'],
+                    'a_verificar' => $l['atencao'],
+                    'dias_de_ferias' => $l['ferias'],
+                    'dias_de_afastamento' => $l['afastamentos'],
+                    'minutos_esperados' => $l['esperado'],
+                    'minutos_trabalhados' => $l['trabalhado'],
+                ])->values(),
             ]),
         ]);
     }

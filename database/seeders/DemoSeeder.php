@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Frequencia\Fechamento;
 use App\Frequencia\Justificador;
 use App\Frequencia\Turnos;
 use App\Importacao\AnalisadorAfastamentos;
@@ -18,6 +19,7 @@ use App\Models\Afastamento;
 use App\Models\Cargo;
 use App\Models\Dependente;
 use App\Models\Documento;
+use App\Models\FechamentoFrequencia;
 use App\Models\Feriado;
 use App\Models\Ferias;
 use App\Models\Importacao;
@@ -110,6 +112,7 @@ class DemoSeeder extends Seeder
         $this->afastamentosEFerias($selc, $criados['rh.selc@nexrh.local']);
         $this->frequencia($selc, $criados['rh.selc@nexrh.local']);
         $this->justificativas($selc, $criados['rh.selc@nexrh.local'], $criados['chefia.dti@nexrh.local']);
+        $this->fechamento($selc, $criados['rh.selc@nexrh.local'], $criados['chefia.coam@nexrh.local']);
 
         $outroGab = $this->unidade($outro, 'GAB', 'Gabinete', 'gabinete', null, null, 1);
         $this->unidade($outro, 'DAF', 'Diretoria Administrativa e Financeira', 'diretoria', $outroGab, null, 2);
@@ -419,6 +422,29 @@ class DemoSeeder extends Seeder
                 ...($anexo ? app(ArquivoDossie::class)->guardarConteudo($s, $pdf, 'declaracao_comparecimento.pdf', 'application/pdf', 'frequencia') : []),
             ]);
         }
+    }
+
+    /**
+     * Fechamento do mês anterior: a COAM conferida pela chefia e fechada pelo RH, para
+     * mostrar o boletim guardado e o mês travado. A DTI e os outros setores ficam
+     * abertos, para a chefia da DTI conferir e o RH fechar na demonstração.
+     */
+    private function fechamento(Orgao $orgao, User $rh, User $chefeCoam): void
+    {
+        if (FechamentoFrequencia::withoutGlobalScopes()->where('orgao_id', $orgao->id)->exists()) {
+            return;
+        }
+        $coam = Unidade::withoutGlobalScopes()->where('orgao_id', $orgao->id)->where('sigla', 'COAM')->first();
+        if (! $coam) {
+            return;
+        }
+
+        $mes = today()->startOfMonth()->subMonthNoOverflow();
+        $fechamento = app(Fechamento::class);
+        FechamentoFrequencia::semAuditoria(function () use ($fechamento, $coam, $mes, $chefeCoam, $rh) {
+            $fechamento->conferir($coam, $mes, $chefeCoam, 'Conferido. Sem pendências além das faltas já comunicadas ao RH. (demonstração)');
+            $fechamento->fechar($coam, $mes, $rh);
+        });
     }
 
     /**
