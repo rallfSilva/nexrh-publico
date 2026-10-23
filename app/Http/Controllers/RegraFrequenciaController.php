@@ -41,6 +41,7 @@ class RegraFrequenciaController extends Controller
             'turnos_6h' => ['required', 'string', 'max:60'],
             'turnos_8h' => ['required', 'string', 'max:60'],
             'tolerancia_minutos' => ['required', 'integer', 'min:0', 'max:60'],
+            'dia_fechamento' => ['required', 'integer', 'min:1', 'max:28'],
             'exigir_rede' => ['boolean'],
             'redes_permitidas' => ['nullable', 'required_if:exigir_rede,1', 'string', 'max:500'],
             'fundamento' => ['nullable', 'string', 'max:255'],

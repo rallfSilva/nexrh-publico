@@ -138,7 +138,7 @@ O manual fica em **Ajuda**, na mesma versão do sistema instalado, e marca as pa
 
 ## Fechamento do mês por setor
 
-O mês fecha setor a setor, porque cada chefia confere a própria equipe em tempos diferentes. A chefia confere (sem justificativa em análise) e o RH fecha; o RH também pode fechar sem a conferência, para não travar a folha quando a chefia está ausente, e a tela avisa. O prazo é o 5º dia útil do mês seguinte (premissa a confirmar com a SELC). No fechamento, o boletim do setor é guardado como estava: o boletim de mês fechado e a API saem dessa cópia, que não muda mesmo se a jornada ou o cadastro mudarem depois. O servidor que muda de setor segue o setor atual.
+O mês fecha setor a setor, porque cada chefia confere a própria equipe em tempos diferentes. A chefia confere (sem justificativa em análise) e o RH fecha; o RH também pode fechar sem a conferência, para não travar a folha quando a chefia está ausente, e a tela avisa. O prazo é o dia 15 do mês seguinte, como informado pela SELC (ajustável em Regras e feriados); se cair em fim de semana ou feriado, vale o dia útil seguinte. No fechamento, o boletim do setor é guardado como estava: o boletim de mês fechado e a API saem dessa cópia, que não muda mesmo se a jornada ou o cadastro mudarem depois. O servidor que muda de setor segue o setor atual.
 
 ## Mês fechado não muda
 

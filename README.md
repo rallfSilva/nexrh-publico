@@ -8,7 +8,7 @@ Gestão de pessoas para a administração pública: estrutura do órgão, usuár
 
 ### Entrega 9: fechamento do mês e boletim
 
-- **Fechamento do mês** em **Frequência › Fechamento do mês**: a chefia **confere** o espelho da equipe (com observação para o RH, se quiser) e o RH **fecha** o mês de cada setor, ou de todos os conferidos de uma vez. O prazo é o **5º dia útil do mês seguinte** (sem fins de semana e feriados), mostrado na tela e no painel.
+- **Fechamento do mês** em **Frequência › Fechamento do mês**: a chefia **confere** o espelho da equipe (com observação para o RH, se quiser) e o RH **fecha** o mês de cada setor, ou de todos os conferidos de uma vez. O prazo é o **dia 15 do mês seguinte** (ou o dia útil depois, se cair em fim de semana ou feriado), ajustável em **Regras e feriados** e mostrado na tela e no painel.
 - Setor com justificativa **em análise** não pode ser conferido nem fechado: a chefia decide antes. Dias sem justificativa entram como falta no boletim.
 - **Mês fechado não muda mais**: marcação, anulação, jornada, justificativa, abono e importação do relógio são recusados para o mês, e o espelho mostra o aviso "Mês fechado". O RH **reabre** com motivo, corrige e fecha de novo; tudo fica na trilha de auditoria.
 - **Boletim de frequência** (em **Relatórios** e na tela de fechamento), em **PDF** e **Excel**, por setor ou do órgão: dias de trabalho, com registro, faltas, abonados, incompletos, a verificar, férias, afastamentos, horas e saldo, e a situação do mês. Mês fechado sai do boletim guardado no fechamento, igual ao que foi fechado.

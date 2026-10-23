@@ -26,7 +26,7 @@
         <div class="card kpi">
             <span class="lbl"><x-icone nome="calendario" tamanho="18" />Prazo para fechar</span>
             <span class="val" style="font-size:26px">{{ $prazo ? ucfirst($prazo->translatedFormat('D, d/m')) : '—' }}</span>
-            <span class="foot">{{ $vencido && ($porSituacao['fechado'] ?? 0) < $total ? 'Prazo vencido. ' : '' }}5º dia útil de {{ $mes->copy()->addMonthNoOverflow()->translatedFormat('F') }}.</span>
+            <span class="foot">{{ $vencido && ($porSituacao['fechado'] ?? 0) < $total ? 'Prazo vencido. ' : '' }}Dia {{ $diaFechamento }} de {{ $mes->copy()->addMonthNoOverflow()->translatedFormat('F') }}, ou o dia útil seguinte.</span>
         </div>
         <div class="card kpi">
             <span class="lbl"><x-icone nome="cadeado" tamanho="18" />Setores fechados</span>

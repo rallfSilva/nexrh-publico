@@ -13,9 +13,9 @@ use Symfony\Component\HttpFoundation\IpUtils;
  * as suas, valem as provisórias: o horário sai da carga da ficha (6h corridas das
  * 7h30 às 13h30, ou 8h das 8h às 12h e das 14h às 18h), 15 minutos de tolerância,
  * registro só de dentro da rede do órgão e dispensa do ponto para secretário,
- * adjunto e coordenadores.
+ * adjunto e coordenadores. O mês fecha até o dia 15 do mês seguinte.
  */
-#[Fillable(['orgao_id', 'turnos_6h', 'turnos_8h', 'tolerancia_minutos', 'exigir_rede', 'redes_permitidas', 'cargos_dispensados', 'fundamento'])]
+#[Fillable(['orgao_id', 'turnos_6h', 'turnos_8h', 'tolerancia_minutos', 'exigir_rede', 'redes_permitidas', 'cargos_dispensados', 'dia_fechamento', 'fundamento'])]
 class RegraFrequencia extends Model
 {
     use Auditable, BelongsToOrgao;
@@ -32,6 +32,7 @@ class RegraFrequencia extends Model
         'exigir_rede' => true,
         'redes_permitidas' => self::REDES_PADRAO,
         'cargos_dispensados' => null,
+        'dia_fechamento' => 15,
         'fundamento' => 'Regras provisórias, a confirmar com a norma de frequência do órgão.',
     ];
 
@@ -49,6 +50,7 @@ class RegraFrequencia extends Model
             'tolerancia_minutos' => 'integer',
             'exigir_rede' => 'boolean',
             'cargos_dispensados' => 'array',
+            'dia_fechamento' => 'integer',
         ];
     }
 

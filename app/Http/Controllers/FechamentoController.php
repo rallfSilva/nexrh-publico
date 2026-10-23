@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Frequencia\Fechamento;
 use App\Models\FechamentoFrequencia;
+use App\Models\RegraFrequencia;
 use App\Models\Unidade;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -15,7 +16,7 @@ use Illuminate\View\View;
 
 /**
  * Fechamento do mês: a chefia confere o espelho da equipe e o RH fecha, setor a
- * setor, até o 5º dia útil do mês seguinte. O RH reabre com motivo.
+ * setor, até o dia 15 do mês seguinte (ajustável nas regras). O RH reabre com motivo.
  */
 class FechamentoController extends Controller
 {
@@ -49,6 +50,7 @@ class FechamentoController extends Controller
             'meses' => $this->meses(),
             'linhas' => $linhas,
             'prazo' => $orgaoId ? Fechamento::prazo($orgaoId, $mes) : null,
+            'diaFechamento' => $orgaoId ? RegraFrequencia::doOrgao($orgaoId)->dia_fechamento : 15,
             'conferidos' => $linhas->where('situacao', 'conferido')->filter(fn ($l) => $l['soma']['em_analise'] === 0)->count(),
         ]);
     }

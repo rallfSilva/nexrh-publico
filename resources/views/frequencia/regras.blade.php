@@ -32,6 +32,7 @@
                     <x-campo nome="turnos_6h" rotulo="Horário de quem faz 6h diárias" :valor="Turnos::campo($regra->turnos_6h)" maxlength="60" obrigatorio ajuda="Ex.: 07:30-13:30" />
                     <x-campo nome="turnos_8h" rotulo="Horário de quem faz 8h diárias" :valor="Turnos::campo($regra->turnos_8h)" maxlength="60" obrigatorio ajuda="Ex.: 08:00-12:00, 14:00-18:00" />
                     <x-campo nome="tolerancia_minutos" rotulo="Tolerância (minutos)" tipo="number" min="0" max="60" :valor="$regra->tolerancia_minutos" obrigatorio ajuda="Atraso ou saída antecipada até esse limite não aparece para verificar." />
+                    <x-campo nome="dia_fechamento" rotulo="Prazo para fechar o mês (dia)" tipo="number" min="1" max="28" :valor="$regra->dia_fechamento" obrigatorio ajuda="Dia do mês seguinte. Se cair em fim de semana ou feriado, vale o dia útil seguinte." />
                     <x-campo nome="fundamento" rotulo="Fundamento" :valor="$regra->fundamento" maxlength="255" ajuda="Ex.: decreto ou portaria que define o expediente." />
                 </div>
                 <h2 style="margin-top:22px">De onde registrar</h2>

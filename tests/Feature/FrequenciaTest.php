@@ -246,7 +246,7 @@ class FrequenciaTest extends TestCase
     {
         $this->actingAs($this->rh)->get('/frequencia/regras')->assertOk()->assertSee('07:30-13:30')->assertSee('127.0.0.1');
 
-        $base = ['turnos_6h' => '07:00-13:00', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15, 'exigir_rede' => '1', 'redes_permitidas' => '10.20.0.0/16'];
+        $base = ['turnos_6h' => '07:00-13:00', 'turnos_8h' => '08:00-12:00, 14:00-18:00', 'tolerancia_minutos' => 15, 'dia_fechamento' => 15, 'exigir_rede' => '1', 'redes_permitidas' => '10.20.0.0/16'];
         $this->put('/frequencia/regras', [...$base, 'turnos_6h' => '07:00-12:00'])->assertSessionHasErrors('turnos_6h');
         $this->put('/frequencia/regras', [...$base, 'redes_permitidas' => '10.20.0.0/99'])->assertSessionHasErrors('redes_permitidas');
         $this->put('/frequencia/regras', $base)->assertSessionHasNoErrors();

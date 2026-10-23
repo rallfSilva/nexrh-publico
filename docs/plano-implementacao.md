@@ -24,8 +24,7 @@
 - Lista oficial de unidades e chefes (a demonstração usa GAB, ASJUR, COAM, DTI, DRH e DAC).
 - Norma de férias usada pela SELC: as regras atuais são provisórias e o RH ajusta em **Férias › Regras de férias**.
 - Mínimo de pessoas por setor durante as férias (a demonstração usa GAB 7, ASJUR 6, COAM 16, DTI 11, DRH 5 e DAC 22).
-- Decreto de pontos facultativos do Estado, para conferir o calendário em **Frequência › Regras e feriados**. Já respondido pela SELC: jornada 07:30 às 13:30, tolerância de 15 minutos, sem banco de horas, secretário, adjunto e coordenadores não registram ponto, sem relógio de ponto.
-- Fechamento do mês: confirmar o prazo (premissa: 5º dia útil do mês seguinte) e se o boletim do NexRH (colunas do relatório **Boletim de frequência**) atende ao que vai para a folha, ou se há um modelo a seguir.
+- Decreto de pontos facultativos do Estado, para conferir o calendário em **Frequência › Regras e feriados**. Já respondido pela SELC: fechamento do mês até o dia 15 do mês seguinte, boletim no modelo do NexRH, jornada 07:30 às 13:30, tolerância de 15 minutos, sem banco de horas, secretário, adjunto e coordenadores não registram ponto, sem relógio de ponto.
 - Faixas de rede (IP) das sedes do órgão, de onde o ponto pode ser registrado.
 - Integração com o sistema da DTI que registra o ponto ao entrar no computador: formato dos dados, se a SELC quiser trazê-los para o NexRH.
 - Onde o sistema vai ficar hospedado. Enquanto não se decide, a premissa é o computador local (Windows com Docker), com a cópia de segurança diária pelo Agendador de Tarefas.
