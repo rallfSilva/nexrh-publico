@@ -61,6 +61,12 @@ class Servidor extends Model
     /** Documentos e dados bancários: criptografados no banco. */
     public const CAMPOS_CRIPTOGRAFADOS = ['cpf', 'pis_pasep', 'rg_numero', 'reservista_numero', 'titulo_numero', 'ctps_numero', 'cnh_numero', 'estrangeiro_rne', 'agencia', 'conta_corrente'];
 
+    /** Campos que a Ficha SEGAD exige. Uma ficha criada pelo quadro de cargos nasce sem eles. */
+    public const CAMPOS_FICHA_OBRIGATORIOS = [
+        'sexo', 'estado_civil', 'raca_cor', 'naturalidade', 'data_nascimento', 'nome_mae', 'grau_instrucao',
+        'cep', 'logradouro', 'numero', 'bairro', 'municipio', 'uf', 'celular', 'email', 'banco_codigo', 'agencia', 'conta_corrente',
+    ];
+
     /** Dados sensíveis da LGPD (art. 11): só RH e administração do órgão veem. */
     public const CAMPOS_SENSIVEIS_LGPD = ['raca_cor', 'pcd', 'tipo_deficiencia', 'molestia_grave', 'tipo_sanguineo'];
 
@@ -254,6 +260,17 @@ class Servidor extends Model
             : $this->declaracoes()->where('tipo', $tipo)->first();
     }
 
+    public function fichaCompleta(): bool
+    {
+        foreach (self::CAMPOS_FICHA_OBRIGATORIOS as $campo) {
+            if ($this->getAttributeValue($campo) === null) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * O que falta para a ficha ficar em dia.
      *
@@ -268,6 +285,9 @@ class Servidor extends Model
         $p = [];
         $ano = (int) now()->year;
 
+        if (! $this->fichaCompleta()) {
+            $p[] = ['titulo' => 'Ficha incompleta', 'detalhe' => 'Criada a partir do quadro de cargos. Faltam dados pessoais, endereço, contato e banco: edite a ficha para completar.'];
+        }
         if ($this->vaga_id === null) {
             $p[] = ['titulo' => 'Sem vaga vinculada', 'detalhe' => 'Escolha a vaga do quadro que este servidor ocupa.'];
         }

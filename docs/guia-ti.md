@@ -129,17 +129,20 @@ Para a folha, o escopo **frequência** dá `GET /api/v1/frequencia?mes=AAAA-MM` 
    ```powershell
    docker compose cp "ESTRUTURA DE CARGOS.xlsx" app:/tmp/estrutura.xlsx
    docker compose exec -T app php artisan nexrh:importar-cargos /tmp/estrutura.xlsx --so-analisar
-   docker compose exec -T app php artisan nexrh:importar-cargos /tmp/estrutura.xlsx
+   docker compose exec -T app php artisan nexrh:importar-cargos /tmp/estrutura.xlsx --criar-fichas
    docker compose exec -T app rm /tmp/estrutura.xlsx
    ```
 
    Na planilha da SELC, com uma aba por mês, vale a última aba (a mais recente). O relatório diz qual foi usada.
-5. Depois, cadastre as unidades e os usuários reais e importe os servidores.
+
+   Com `--criar-fichas` (na tela, a opção "Criar também a ficha de cada ocupante", marcada por padrão), cada ocupante ainda não cadastrado ganha uma ficha em **Servidores** com o nome, o CPF, a vaga e o ato de nomeação. A ficha fica com a pendência "Ficha incompleta" até o RH preencher o resto. Vagas com CPF inválido, ou com o mesmo CPF de outra vaga, não geram ficha e aparecem no relatório.
+5. Depois, cadastre as unidades e os usuários reais e complete as fichas (na tela ou pela planilha modelo 03 de servidores, que atualiza quem já tem o mesmo CPF).
 
 ## 9. Problemas comuns
 
 | Sintoma | O que fazer |
 |---|---|
+| Erro 500 ao enviar uma planilha | A pasta de arquivos ficou com outro dono (comando rodado como root). Rode `docker compose exec app chown -R www-data:www-data storage`. Os comandos `nexrh:*` já devolvem a pasta ao dono certo quando terminam |
 | A página não abre | `docker compose ps`; se algum serviço não estiver `healthy`, veja `docker compose logs --tail=100 app` |
 | "Porta já em uso" ao subir | Mude `NEXRH_PORTA` no `.env` e rode `docker compose up -d` |
 | Links de senha não chegam | Confira `MAIL_*` no `.env` e `docker compose logs fila` |

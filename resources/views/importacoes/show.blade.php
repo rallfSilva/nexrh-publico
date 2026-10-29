@@ -68,7 +68,7 @@
                 <form method="POST" action="{{ route('importacoes.cancelar', $importacao) }}">@csrf
                     <button type="submit" class="btn btn-s">Cancelar</button>
                 </form>
-                <form method="POST" action="{{ route('importacoes.aplicar', $importacao) }}" data-confirmar="{{ $confirmar }}" onsubmit="return confirm(this.dataset.confirmar)">@csrf
+                <form method="POST" id="form-aplicar" action="{{ route('importacoes.aplicar', $importacao) }}" data-confirmar="{{ $confirmar }}" onsubmit="return confirm(this.dataset.confirmar)">@csrf
                     <button type="submit" class="btn btn-p"><x-icone nome="ok" />Confirmar importação</button>
                 </form>
             @endif
@@ -87,6 +87,13 @@
             @endif
         </div>
     </div>
+
+    @if ($importacao->tipo === 'cargos' && $importacao->podeAplicar() && auth()->user()->can('servidores.gerenciar'))
+        <section class="card nao-imprimir" style="margin-bottom:16px">
+            <label class="check"><input type="checkbox" name="criar_fichas" value="1" form="form-aplicar" checked> Criar também a ficha de cada ocupante que ainda não está em Servidores ({{ $calc['ocupadas'] ?? 0 }} vagas ocupadas na planilha)</label>
+            <p class="muted small" style="margin:4px 0 0 28px">A ficha nasce com o nome, o CPF, a vaga e o ato de nomeação. Fica com a pendência "Ficha incompleta" até o RH preencher o resto. Quem já tem ficha (mesmo CPF) não muda. CPF inválido ou repetido não gera ficha.</p>
+        </section>
+    @endif
 
     <section class="card">
         <h2>Totais</h2>
