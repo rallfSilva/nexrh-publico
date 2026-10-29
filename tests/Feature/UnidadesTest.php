@@ -38,6 +38,19 @@ class UnidadesTest extends TestCase
         $this->actingAs($admin)->get('/unidades')->assertSeeInOrder(['GAB', 'DTI']);
     }
 
+    public function test_aceita_tipo_secretario(): void
+    {
+        $admin = $this->usuario('administrador-orgao', $this->orgao);
+
+        $this->actingAs($admin)->get('/unidades/create')->assertSee('Secretário');
+
+        $this->actingAs($admin)->post('/unidades', [
+            'sigla' => 'SEC', 'nome' => 'Secretário de Estado', 'tipo' => 'secretario', 'ativo' => '1',
+        ])->assertRedirect();
+
+        $this->assertSame('secretario', Unidade::where('sigla', 'SEC')->value('tipo'));
+    }
+
     public function test_sigla_repetida_no_mesmo_orgao_e_recusada_mas_aceita_em_outro(): void
     {
         Unidade::factory()->for($this->orgao)->create(['sigla' => 'DTI']);

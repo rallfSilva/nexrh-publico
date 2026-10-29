@@ -22,6 +22,7 @@ class Unidade extends Model
     /** @var array<string, string> */
     public const TIPOS = [
         'gabinete' => 'Gabinete',
+        'secretario' => 'Secretário',
         'secretaria_adjunta' => 'Secretaria adjunta',
         'diretoria' => 'Diretoria',
         'coordenadoria' => 'Coordenadoria',
