@@ -171,6 +171,32 @@ class RegrasFicha
         ];
     }
 
+    /** Campos que a tela sempre exige, mesmo salvando a ficha pela metade. */
+    public const SEMPRE_EXIGIDOS = ['nome', 'cpf'];
+
+    /**
+     * Regras para salvar a ficha pela metade: o que foi preenchido continua sendo
+     * conferido (CPF válido, datas, e-mail etc.), mas os campos obrigatórios podem
+     * ficar em branco. O que faltar vira a pendência "Ficha incompleta".
+     *
+     * @return array<string, mixed>
+     */
+    public static function regrasParciais(int $orgaoId, ?Servidor $servidor = null, bool $exigeVaga = true): array
+    {
+        $regras = self::regras($orgaoId, $servidor, $exigeVaga);
+
+        foreach ($regras as $campo => $lista) {
+            if (in_array($campo, self::SEMPRE_EXIGIDOS, true) || ($campo === 'vaga_id' && $exigeVaga)) {
+                continue;
+            }
+
+            $lista = array_values(array_filter($lista, fn ($r) => ! (is_string($r) && ($r === 'required' || str_starts_with($r, 'required_if:')))));
+            $regras[$campo] = in_array('nullable', $lista, true) ? $lista : ['nullable', ...$lista];
+        }
+
+        return $regras;
+    }
+
     /** @return array<string, string> */
     public static function mensagens(): array
     {

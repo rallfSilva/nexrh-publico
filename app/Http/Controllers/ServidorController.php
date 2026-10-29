@@ -93,7 +93,7 @@ class ServidorController extends Controller
             return $servidor;
         });
 
-        return redirect()->route('servidores.show', $servidor)->with('sucesso', 'Servidor cadastrado e vaga marcada como ocupada. Registre agora as declarações de parentesco, acumulação e bens.');
+        return redirect()->route('servidores.show', $servidor)->with('sucesso', $this->mensagemDeSalvo($servidor, 'Servidor cadastrado e vaga marcada como ocupada. Registre agora as declarações de parentesco, acumulação e bens.'));
     }
 
     public function show(Request $request, Servidor $servidor, Periodos $periodos): View
@@ -135,7 +135,7 @@ class ServidorController extends Controller
             $ocupacao->sincronizar($servidor->refresh(), $antes);
         });
 
-        return redirect()->route('servidores.show', $servidor)->with('sucesso', $readmissao ? 'Servidor readmitido.' : 'Cadastro atualizado.');
+        return redirect()->route('servidores.show', $servidor)->with('sucesso', $this->mensagemDeSalvo($servidor, $readmissao ? 'Servidor readmitido.' : 'Cadastro atualizado.'));
     }
 
     public function desligar(Request $request, Servidor $servidor, OcupacaoDeVaga $ocupacao): RedirectResponse
@@ -172,9 +172,22 @@ class ServidorController extends Controller
     private function validar(Request $request, int $orgaoId, ?Servidor $servidor = null): array
     {
         $dados = RegrasFicha::normalizar($request->only(array_keys(RegrasFicha::regras($orgaoId))));
-        $exigeVaga = $servidor === null || $servidor->ativo();
+        // Só o cadastro novo e quem já está numa vaga precisam de vaga; quem ainda não tem pode salvar sem.
+        $exigeVaga = $servidor === null || ($servidor->ativo() && $servidor->vaga_id !== null);
 
-        return Validator::make($dados, RegrasFicha::regras($orgaoId, $servidor, $exigeVaga), RegrasFicha::mensagens(), RegrasFicha::nomes())->validate();
+        // A ficha pode ser salva pela metade: o que faltar vira a pendência "Ficha incompleta".
+        $dados = Validator::make($dados, RegrasFicha::regrasParciais($orgaoId, $servidor, $exigeVaga), RegrasFicha::mensagens(), RegrasFicha::nomes())->validate();
+
+        // Colunas que não aceitam vazio: em branco, mantém o que já estava gravado.
+        return array_filter($dados, fn ($valor, $campo) => $valor !== null || ! in_array($campo, ['nacionalidade', ...RegrasFicha::LOGICOS], true), ARRAY_FILTER_USE_BOTH);
+    }
+
+    /** Mensagem depois de salvar: avisa o que ainda falta, sem impedir de salvar. */
+    private function mensagemDeSalvo(Servidor $servidor, string $mensagem): string
+    {
+        return $servidor->fichaCompleta()
+            ? $mensagem
+            : $mensagem.' A ficha ficou salva como incompleta. Ainda faltam campos obrigatórios em '.$servidor->resumoDaFichaIncompleta().'; complete quando tiver os dados.';
     }
 
     /** Órgão em que o cadastro é feito: o do usuário ou, para o administrador geral, o escolhido. */

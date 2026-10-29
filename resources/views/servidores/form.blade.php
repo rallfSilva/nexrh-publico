@@ -6,6 +6,8 @@
     $novo = ! $s->exists;
     $desligado = $s->exists && ! $s->ativo();
     $vagaAtual = old('vaga_id', $s->vaga_id ?? $vagaSugerida);
+    // Mesma regra do controlador: a vaga só é exigida no cadastro novo e de quem já está numa vaga.
+    $exigeVaga = $novo || ($s->ativo() && $s->vaga_id !== null);
     $etapas = [
         ['nomeacao', 'Nomeação e lotação', 'Ato, cargo e setor', 'Cabeçalho da ficha: o ato de nomeação, a vaga do quadro que o servidor ocupa e onde ele trabalha.'],
         ['pessoais', 'Dados pessoais', 'Identificação e saúde', 'Como estão na certidão e nos documentos. Sem abreviar nomes.'],
@@ -19,7 +21,7 @@
         <div>
             <a href="{{ $novo ? route('servidores.index') : route('servidores.show', $s) }}" class="small" style="font-weight:600;display:inline-flex;gap:4px;align-items:center"><x-icone nome="voltar" tamanho="16" />{{ $novo ? 'Servidores' : $s->nome }}</a>
             <h1 class="h1" style="margin-top:8px">{{ $novo ? 'Cadastro do servidor' : 'Editar cadastro' }}</h1>
-            <p class="sub">Mesmos campos da Ficha de Cadastro enviada à SEGAD/RR. Campos com <span style="color:#9F1D1D">*</span> são obrigatórios na ficha.</p>
+            <p class="sub">Mesmos campos da Ficha de Cadastro enviada à SEGAD/RR. Campos com <span style="color:#9F1D1D">*</span> são obrigatórios na ficha. Dá para salvar com campos em branco e completar depois: a ficha fica com a pendência "Ficha incompleta".</p>
         </div>
         @if ($novo)
             <a href="{{ route('importacoes.create', ['tipo' => 'servidores']) }}" class="btn btn-s"><x-icone nome="planilha" />Importar da planilha</a>
@@ -53,8 +55,8 @@
 
                     <p class="grupo">Cargo e lotação</p>
                     <div class="form-grid">
-                        <x-campo nome="vaga_id" rotulo="Cargo e vaga do quadro" :obrigatorio="! $desligado" classe="full" ajuda="Aparecem as vagas livres e as ocupadas só na planilha, ainda sem servidor cadastrado.">
-                            <select id="campo-vaga_id" name="vaga_id" class="input" @unless ($desligado) required @endunless @error('vaga_id') aria-invalid="true" @enderror>
+                        <x-campo nome="vaga_id" rotulo="Cargo e vaga do quadro" :obrigatorio="$exigeVaga" classe="full" ajuda="Aparecem as vagas livres e as ocupadas só na planilha, ainda sem servidor cadastrado.">
+                            <select id="campo-vaga_id" name="vaga_id" class="input" @if ($exigeVaga) required data-sempre-exigido @endif @error('vaga_id') aria-invalid="true" @enderror>
                                 <option value="">{{ $vagas->isEmpty() ? 'Nenhuma vaga livre no quadro' : 'Selecione o cargo e a vaga' }}</option>
                                 @foreach ($vagas as $cargo => $lista)
                                     <optgroup label="{{ $cargo }}">
@@ -99,7 +101,7 @@
                 <section class="etapa" id="etapa-pessoais" aria-labelledby="t-pessoais">
                     <div class="etapa-cab"><div><h2 id="t-pessoais" tabindex="-1">{{ $etapas[1][1] }}</h2><p>{{ $etapas[1][3] }}</p></div><span class="small muted" style="font-weight:600" data-contador-etapa>Etapa 2 de 5</span></div>
                     <div class="form-grid">
-                        <x-campo nome="nome" rotulo="Nome completo" :valor="$s->nome" obrigatorio classe="full" autocomplete="off" />
+                        <x-campo nome="nome" rotulo="Nome completo" :valor="$s->nome" obrigatorio classe="full" autocomplete="off" data-sempre-exigido />
                         <x-escolha nome="sexo" rotulo="Sexo" :opcoes="FichaSegad::SEXOS" :valor="$s->sexo" obrigatorio />
                         <x-lista nome="estado_civil" rotulo="Estado civil" :opcoes="FichaSegad::ESTADOS_CIVIS" :valor="$s->estado_civil" obrigatorio codigos />
                         <x-campo nome="data_nascimento" rotulo="Data de nascimento" tipo="date" :valor="$dt('data_nascimento')" obrigatorio />
@@ -126,7 +128,7 @@
                 <section class="etapa" id="etapa-documentos" aria-labelledby="t-documentos">
                     <div class="etapa-cab"><div><h2 id="t-documentos" tabindex="-1">{{ $etapas[2][1] }}</h2><p>{{ $etapas[2][3] }}</p></div><span class="small muted" style="font-weight:600" data-contador-etapa>Etapa 3 de 5</span></div>
                     <div class="form-grid">
-                        <x-campo nome="cpf" rotulo="CPF" :valor="$s->cpfFormatado()" obrigatorio inputmode="numeric" data-mascara="cpf" placeholder="000.000.000-00" autocomplete="off" />
+                        <x-campo nome="cpf" rotulo="CPF" :valor="$s->cpfFormatado()" obrigatorio data-sempre-exigido inputmode="numeric" data-mascara="cpf" placeholder="000.000.000-00" autocomplete="off" />
                         <x-campo nome="pis_pasep" rotulo="PIS/PASEP" :valor="$s->pis_pasep" obrigatorio autocomplete="off" />
                     </div>
                     <p class="grupo">Identidade</p>
