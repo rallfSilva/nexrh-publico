@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use League\Flysystem\FilesystemException;
 use RuntimeException;
 
 class ImportacaoController extends Controller
@@ -69,7 +70,15 @@ class ImportacaoController extends Controller
         $tipo = $request->input('tipo');
         $orgaoId = $user->orgao_id ?? (int) $request->input('orgao_id');
         $arquivo = $request->file('arquivo');
-        $caminho = $arquivo->storeAs("importacoes/{$orgaoId}", Str::uuid().($ponto ? '.txt' : '.xlsx'), 'local');
+        try {
+            $caminho = $arquivo->storeAs("importacoes/{$orgaoId}", Str::uuid().($ponto ? '.txt' : '.xlsx'), 'local');
+        } catch (FilesystemException $e) {
+            report($e);
+            $caminho = false;
+        }
+        if ($caminho === false) {
+            return back()->withErrors(['arquivo' => 'O sistema não conseguiu guardar o arquivo no servidor. Peça à TI para conferir as permissões da pasta storage (Guia da TI, Problemas comuns).']);
+        }
         $completo = Storage::disk('local')->path($caminho);
 
         try {
@@ -169,7 +178,16 @@ class ImportacaoController extends Controller
             ));
         }
 
-        $r = app(AplicadorQuadroCargos::class)->aplicar($importacao);
+        $fichas = $request->boolean('criar_fichas') && $request->user()->can('servidores.gerenciar');
+        $r = app(AplicadorQuadroCargos::class)->aplicar($importacao, $fichas);
+
+        if ($r['fichas']) {
+            return redirect()->route('servidores.index')->with('sucesso', sprintf(
+                'Quadro importado: %d cargo(s) novo(s), %d atualizado(s), %d vaga(s). Servidores: %d ficha(s) criada(s) e %d ligada(s) à vaga%s. As fichas novas ficam com a pendência "Ficha incompleta" até o RH completar.',
+                $r['criados'], $r['atualizados'], $r['vagas'], $r['fichas']['criadas'], $r['fichas']['vinculadas'],
+                $r['fichas']['ignoradas'] ? '; '.count($r['fichas']['ignoradas']).' vaga(s) sem ficha por CPF inválido ou repetido (veja as divergências da importação)' : '',
+            ));
+        }
 
         return redirect()->route('cargos.index', ['orgao' => $importacao->orgao_id])->with('sucesso', sprintf(
             'Quadro importado: %d cargo(s) novo(s), %d atualizado(s), %d vaga(s). O relatório de divergências continua disponível no histórico de importações.',

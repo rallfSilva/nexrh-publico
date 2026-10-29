@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\DevolveArquivosAoServidorWeb;
 use App\Importacao\AnalisadorQuadroCargos;
 use App\Importacao\AplicadorQuadroCargos;
 use App\Models\Importacao;
@@ -24,11 +25,23 @@ use Illuminate\Support\Str;
     {arquivo : Caminho da planilha .xlsx}
     {--orgao=SELC : Sigla do órgão}
     {--usuario= : E-mail de quem importa (padrão: o primeiro administrador geral)}
-    {--so-analisar : Só mostra o relatório, sem gravar}')]
+    {--so-analisar : Só mostra o relatório, sem gravar}
+    {--criar-fichas : Cria também a ficha (incompleta) de cada ocupante ainda sem cadastro}')]
 #[Description('Importa a planilha de estrutura de cargos e vagas')]
 class ImportarCargos extends Command
 {
+    use DevolveArquivosAoServidorWeb;
+
     public function handle(AnalisadorQuadroCargos $analisador, AplicadorQuadroCargos $aplicador): int
+    {
+        try {
+            return $this->importar($analisador, $aplicador);
+        } finally {
+            $this->devolverArquivosAoServidorWeb();
+        }
+    }
+
+    private function importar(AnalisadorQuadroCargos $analisador, AplicadorQuadroCargos $aplicador): int
     {
         $origem = (string) $this->argument('arquivo');
         if (! is_file($origem)) {
@@ -84,8 +97,14 @@ class ImportarCargos extends Command
             return self::SUCCESS;
         }
 
-        $r = $aplicador->aplicar($importacao);
+        $r = $aplicador->aplicar($importacao, (bool) $this->option('criar-fichas'));
         $this->info(sprintf('Quadro importado: %d cargo(s) criado(s), %d atualizado(s), %d vaga(s).', $r['criados'], $r['atualizados'], $r['vagas']));
+        if ($r['fichas']) {
+            $this->info(sprintf('Servidores: %d ficha(s) criada(s) e %d ligada(s) à vaga. As fichas novas ficam com a pendência "Ficha incompleta" até o RH completar.', $r['fichas']['criadas'], $r['fichas']['vinculadas']));
+            foreach ($r['fichas']['ignoradas'] as $motivo) {
+                $this->line('[sem ficha] '.$motivo);
+            }
+        }
 
         return self::SUCCESS;
     }

@@ -17,11 +17,13 @@ use LogicException;
  * cargo importado passam a ser exatamente as da planilha. Cargos do órgão que não
  * estão na planilha são desativados, nunca apagados. Gera um único registro de
  * auditoria com o resumo, em vez de um por vaga.
+ *
+ * Com $criarFichas, também cria a ficha (incompleta) de cada ocupante ainda sem cadastro.
  */
 class AplicadorQuadroCargos
 {
-    /** @return array{criados: int, atualizados: int, desativados: int, vagas: int, desvinculados: int} */
-    public function aplicar(Importacao $importacao): array
+    /** @return array{criados: int, atualizados: int, desativados: int, vagas: int, desvinculados: int, fichas: ?array{criadas: int, vinculadas: int, ignoradas: list<string>}} */
+    public function aplicar(Importacao $importacao, bool $criarFichas = false): array
     {
         if (! $importacao->podeAplicar()) {
             throw new LogicException('Esta importação não pode ser aplicada.');
@@ -30,7 +32,7 @@ class AplicadorQuadroCargos
         $orgaoId = $importacao->orgao_id;
         $cargosPlanilha = $importacao->dados['cargos'] ?? [];
 
-        return DB::transaction(function () use ($importacao, $orgaoId, $cargosPlanilha) {
+        return DB::transaction(function () use ($importacao, $orgaoId, $cargosPlanilha, $criarFichas) {
             $resultado = Cargo::semAuditoria(fn () => Vaga::semAuditoria(function () use ($orgaoId, $cargosPlanilha) {
                 $existentes = Cargo::withoutGlobalScopes()->where('orgao_id', $orgaoId)->get()
                     ->keyBy(fn (Cargo $c) => Texto::chave($c->denominacao).'|'.Texto::chave($c->simbolo));
@@ -81,6 +83,7 @@ class AplicadorQuadroCargos
 
                 return $r;
             }));
+            $resultado['fichas'] = $criarFichas ? app(FichasDosOcupantes::class)->criar($orgaoId) : null;
 
             $importacao->forceFill([
                 'situacao' => 'aplicada',
@@ -89,8 +92,9 @@ class AplicadorQuadroCargos
             ])->save();
 
             Auditoria::registrar('importacao', $importacao, sprintf(
-                'Quadro de cargos importado de "%s": %d cargos criados, %d atualizados, %d desativados, %d vagas',
+                'Quadro de cargos importado de "%s": %d cargos criados, %d atualizados, %d desativados, %d vagas%s',
                 $importacao->arquivo_nome, $resultado['criados'], $resultado['atualizados'], $resultado['desativados'], $resultado['vagas'],
+                $resultado['fichas'] ? sprintf('; %d ficha(s) de servidor criada(s) e %d vinculada(s) à vaga', $resultado['fichas']['criadas'], $resultado['fichas']['vinculadas']) : '',
             ), null, $resultado);
 
             return $resultado;

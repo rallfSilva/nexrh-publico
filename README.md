@@ -9,7 +9,7 @@ Gestão de pessoas para a administração pública: estrutura do órgão, usuár
 ### Passagem para os dados reais
 
 - `php artisan nexrh:limpar-demonstracao --confirmar=APAGAR` apaga todos os dados de demonstração e deixa só os perfis, o órgão e um administrador geral com senha nova; a trilha de auditoria fica.
-- `php artisan nexrh:importar-cargos planilha.xlsx` importa o quadro de cargos como a tela de importação, com o mesmo relatório de divergências e CPF sempre mascarado. Na planilha da SELC com uma aba por mês, vale a mais recente.
+- `php artisan nexrh:importar-cargos planilha.xlsx` importa o quadro de cargos como a tela de importação, com o mesmo relatório de divergências e CPF sempre mascarado. Na planilha da SELC com uma aba por mês, vale a mais recente. Com `--criar-fichas` (ou a opção na tela), cada ocupante ainda sem cadastro ganha uma ficha incompleta com nome, CPF, vaga e ato de nomeação, para o RH completar.
 - O passo a passo está no [guia da TI](docs/guia-ti.md), seção 8.
 
 ### Entrega 9: fechamento do mês e boletim

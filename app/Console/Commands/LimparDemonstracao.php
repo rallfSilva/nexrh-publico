@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\DevolveArquivosAoServidorWeb;
 use App\Models\Orgao;
 use App\Models\User;
 use App\Support\Auditoria;
@@ -33,7 +34,18 @@ use Spatie\Permission\PermissionRegistrar;
 #[Description('Apaga todos os dados de demonstração e deixa o sistema pronto para os dados reais')]
 class LimparDemonstracao extends Command
 {
+    use DevolveArquivosAoServidorWeb;
+
     public function handle(): int
+    {
+        try {
+            return $this->limpar();
+        } finally {
+            $this->devolverArquivosAoServidorWeb();
+        }
+    }
+
+    private function limpar(): int
     {
         if ($this->option('confirmar') !== 'APAGAR') {
             $this->error('Isto apaga TODOS os dados do sistema. Faça a cópia de segurança e rode de novo com --confirmar=APAGAR.');
