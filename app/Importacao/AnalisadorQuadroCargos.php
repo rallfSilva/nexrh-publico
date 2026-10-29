@@ -66,18 +66,28 @@ class AnalisadorQuadroCargos
 
     // ---------------------------------------------------------------- formato SELC
 
-    /** @param array<string, list<list<mixed>>> $abas */
+    /**
+     * A SELC acrescenta uma aba por mês na mesma planilha: vale a última aba com o
+     * quadro (a mais recente), e o relatório diz qual foi usada.
+     *
+     * @param  array<string, list<list<mixed>>>  $abas
+     */
     private function abaEstruturaSelc(array $abas): ?string
     {
+        $comQuadro = [];
         foreach ($abas as $nome => $linhas) {
             foreach (array_slice($linhas, 0, 40) as $linha) {
                 if ($this->ehCabecalhoSelc($linha)) {
-                    return $nome;
+                    $comQuadro[] = (string) $nome;
+                    break;
                 }
             }
         }
+        if (count($comQuadro) > 1) {
+            $this->divergir('aviso', null, 'A planilha tem '.count($comQuadro).' abas com o quadro de cargos ('.implode(', ', $comQuadro).'). Foi usada a última, "'.end($comQuadro).'", a mais recente.');
+        }
 
-        return null;
+        return $comQuadro === [] ? null : end($comQuadro);
     }
 
     /** @param list<mixed> $linha */
