@@ -7,6 +7,7 @@ use App\Models\Cargo;
 use App\Models\Importacao;
 use App\Models\Orgao;
 use App\Models\Servidor;
+use App\Models\Unidade;
 use App\Models\Vaga;
 use App\Support\Cpf;
 use Database\Factories\ServidorFactory;
@@ -59,7 +60,7 @@ class FichasDosOcupantesTest extends TestCase
     {
         $orgao = Orgao::factory()->create(['sigla' => 'SELC']);
         $cargo = Cargo::factory()->for($orgao)->create();
-        $existente = Servidor::factory()->for($orgao)->create(['nome' => 'Nome Da Ficha', 'vaga_id' => null]);
+        $existente = Servidor::factory()->for($orgao)->create(['nome' => 'Nome Da Ficha', 'vaga_id' => null, 'unidade_id' => Unidade::factory()->for($orgao)]);
         $vaga = $this->vaga($cargo, 1, 'Nome Da Planilha', $existente->cpf);
 
         $r = app(FichasDosOcupantes::class)->criar($orgao->id);

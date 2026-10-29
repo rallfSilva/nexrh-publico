@@ -98,10 +98,55 @@ class ServidoresTest extends TestCase
         $this->actingAs($rh)->post('/servidores', $this->formulario(['cpf' => $existente->cpf, 'vaga_id' => $this->vaga(2)->id]))
             ->assertSessionHasErrors(['cpf' => 'Já existe um servidor com este CPF no órgão.']);
         $this->actingAs($rh)->post('/servidores', $this->formulario(['vaga_id' => $this->vaga(1)->id]))->assertSessionHasErrors('vaga_id');
-        $this->actingAs($rh)->post('/servidores', $this->formulario(['sexo' => 'M', 'vaga_id' => $this->vaga(2)->id]))->assertSessionHasErrors('reservista_numero');
-        $this->actingAs($rh)->post('/servidores', $this->formulario(['pcd' => '1', 'tipo_deficiencia' => '', 'vaga_id' => $this->vaga(2)->id]))->assertSessionHasErrors('tipo_deficiencia');
+        $this->actingAs($rh)->post('/servidores', $this->formulario(['nome' => '', 'vaga_id' => $this->vaga(2)->id]))->assertSessionHasErrors('nome');
+        $this->actingAs($rh)->post('/servidores', $this->formulario(['vaga_id' => '']))->assertSessionHasErrors('vaga_id');
+        // O que foi preenchido continua sendo conferido, mesmo salvando pela metade.
+        $this->actingAs($rh)->post('/servidores', $this->formulario(['email' => 'sem-arroba', 'cep' => '', 'vaga_id' => $this->vaga(2)->id]))->assertSessionHasErrors('email');
 
         $this->assertSame(1, Servidor::count());
+    }
+
+    public function test_ficha_pode_ser_salva_pela_metade(): void
+    {
+        $rh = $this->usuario('rh', $this->orgao);
+        $servidor = $this->cadastrar([], $rh);
+        $this->assertTrue($servidor->fichaCompleta());
+
+        // Troca a lotação e deixa endereço, banco e documentos em branco: salva assim mesmo.
+        $dti = Unidade::factory()->for($this->orgao)->create(['sigla' => 'DTI']);
+        $this->actingAs($rh)->put("/servidores/{$servidor->id}", $this->formulario([
+            'cpf' => $servidor->cpf, 'nome' => $servidor->nome, 'unidade_id' => $dti->id,
+            'cep' => '', 'logradouro' => '', 'agencia' => '', 'pis_pasep' => '', 'nacionalidade' => '', 'pcd' => '1', 'tipo_deficiencia' => '',
+        ]))->assertSessionHasNoErrors()->assertRedirect("/servidores/{$servidor->id}")
+            ->assertSessionHas('sucesso', fn ($m) => str_contains($m, 'incompleta') && str_contains($m, 'Endereço e banco (3)'));
+
+        $servidor->refresh();
+        $this->assertSame($dti->id, $servidor->unidade_id);
+        $this->assertNull($servidor->cep);
+        $this->assertSame('Brasileira', $servidor->nacionalidade);
+        $this->assertFalse($servidor->fichaCompleta());
+        $this->assertSame(['Dados pessoais' => 1, 'Documentos' => 1, 'Endereço e banco' => 3], $servidor->etapasIncompletas());
+        $this->assertContains('Ficha incompleta', array_column($servidor->pendencias(), 'titulo'));
+
+        // Depois o RH completa e a pendência some.
+        $this->actingAs($rh)->put("/servidores/{$servidor->id}", $this->formulario(['cpf' => $servidor->cpf, 'nome' => $servidor->nome, 'unidade_id' => $dti->id]))
+            ->assertSessionHasNoErrors()->assertSessionHas('sucesso', 'Cadastro atualizado.');
+        $this->assertTrue($servidor->refresh()->fichaCompleta());
+    }
+
+    public function test_ficha_sem_vaga_salva_a_lotacao(): void
+    {
+        $rh = $this->usuario('rh', $this->orgao);
+        $servidor = Servidor::factory()->for($this->orgao)->create(['vaga_id' => null, 'cep' => null]);
+
+        $this->actingAs($rh)->get("/servidores/{$servidor->id}/editar")->assertOk();
+        $this->actingAs($rh)->put("/servidores/{$servidor->id}", ['nome' => $servidor->nome, 'cpf' => $servidor->cpf, 'unidade_id' => $this->dac->id])
+            ->assertSessionHasNoErrors();
+
+        $servidor->refresh();
+        $this->assertSame($this->dac->id, $servidor->unidade_id);
+        $this->assertNull($servidor->vaga_id);
+        $this->assertSame('1990-03-15', $servidor->data_nascimento->format('Y-m-d'));
     }
 
     public function test_troca_de_vaga_lotacao_e_desligamento(): void

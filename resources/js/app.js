@@ -64,7 +64,12 @@ $$('form[data-etapas]').forEach((form) => {
     const camposVisiveis = (etapa) => $$('input, select, textarea', etapa)
         .filter((c) => !c.closest('[data-mostrar-se][hidden]'));
 
-    const valida = (etapa) => camposVisiveis(etapa).every((c) => c.checkValidity());
+    // A ficha pode ser salva pela metade: campo obrigatório em branco não impede,
+    // só o que foi preenchido errado (ou os campos marcados com data-sempre-exigido).
+    const emBranco = (c) => !c.validity.valid && c.validity.valueMissing;
+    const errado = (c) => !c.checkValidity() && (!emBranco(c) || c.hasAttribute('data-sempre-exigido'));
+    const valida = (etapa) => !camposVisiveis(etapa).some(errado);
+    const completa = (etapa) => camposVisiveis(etapa).every((c) => c.validity.valid);
 
     function mostrar(indice, foco = true) {
         atual = Math.max(0, Math.min(indice, etapas.length - 1));
@@ -81,14 +86,16 @@ $$('form[data-etapas]').forEach((form) => {
     function conferir(indice) {
         const etapa = etapas[indice];
         const ok = valida(etapa);
+        const cheia = ok && completa(etapa);
         botoes[indice].classList.toggle('com-erro', !ok);
-        botoes[indice].classList.toggle('feita', ok);
+        botoes[indice].classList.toggle('incompleta', ok && !cheia);
+        botoes[indice].classList.toggle('feita', cheia);
         return ok;
     }
 
     function relatarErro(indice) {
         mostrar(indice, false);
-        camposVisiveis(etapas[indice]).find((c) => !c.checkValidity())?.reportValidity();
+        camposVisiveis(etapas[indice]).find(errado)?.reportValidity();
     }
 
     botoes.forEach((b, i) => b.addEventListener('click', () => { conferir(atual); mostrar(i); }));
@@ -98,17 +105,27 @@ $$('form[data-etapas]').forEach((form) => {
     });
     form.querySelector('[data-anterior]').addEventListener('click', () => mostrar(atual - 1));
 
+    // Avisa antes de sair da tela com alterações que ainda não foram salvas.
+    let alterado = false;
+    form.addEventListener('input', () => { alterado = true; });
+    form.addEventListener('change', () => { alterado = true; });
+    window.addEventListener('beforeunload', (evento) => {
+        if (alterado) evento.preventDefault();
+    });
+
     form.addEventListener('submit', (evento) => {
         const invalida = etapas.findIndex((_, i) => !conferir(i));
         if (invalida !== -1) {
             evento.preventDefault();
             relatarErro(invalida);
+            return;
         }
+        alterado = false;
     });
 
     // Volta do servidor com erros: abre a primeira etapa que tem erro.
     const comErro = etapas.findIndex((e) => e.querySelector('.erro'));
-    etapas.forEach((e, i) => { if (e.querySelector('.erro')) botoes[i].classList.add('com-erro'); });
+    etapas.forEach((e, i) => { if (e.querySelector('.erro')) botoes[i].classList.add('com-erro'); else if (!completa(e)) botoes[i].classList.add('incompleta'); });
     mostrar(comErro === -1 ? 0 : comErro, false);
 });
 

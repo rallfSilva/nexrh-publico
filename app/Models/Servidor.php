@@ -61,10 +61,13 @@ class Servidor extends Model
     /** Documentos e dados bancários: criptografados no banco. */
     public const CAMPOS_CRIPTOGRAFADOS = ['cpf', 'pis_pasep', 'rg_numero', 'reservista_numero', 'titulo_numero', 'ctps_numero', 'cnh_numero', 'estrangeiro_rne', 'agencia', 'conta_corrente'];
 
-    /** Campos que a Ficha SEGAD exige. Uma ficha criada pelo quadro de cargos nasce sem eles. */
+    /** Campos que a Ficha SEGAD exige, por etapa da tela. A ficha pode ser salva sem eles (fica "incompleta"). */
     public const CAMPOS_FICHA_OBRIGATORIOS = [
-        'sexo', 'estado_civil', 'raca_cor', 'naturalidade', 'data_nascimento', 'nome_mae', 'grau_instrucao',
-        'cep', 'logradouro', 'numero', 'bairro', 'municipio', 'uf', 'celular', 'email', 'banco_codigo', 'agencia', 'conta_corrente',
+        'Nomeação e lotação' => ['unidade_id', 'decreto_nomeacao', 'data_decreto', 'efeitos_a_partir_de', 'carga_horaria'],
+        'Dados pessoais' => ['sexo', 'estado_civil', 'raca_cor', 'naturalidade', 'data_nascimento', 'nome_mae'],
+        'Documentos' => ['pis_pasep', 'rg_numero', 'rg_orgao_uf', 'rg_data_expedicao', 'titulo_numero', 'titulo_zona', 'titulo_secao', 'titulo_cidade', 'titulo_uf'],
+        'Formação e vínculos' => ['grau_instrucao'],
+        'Endereço e banco' => ['cep', 'logradouro', 'numero', 'bairro', 'municipio', 'uf', 'celular', 'email', 'banco_codigo', 'agencia', 'conta_corrente'],
     ];
 
     /** Dados sensíveis da LGPD (art. 11): só RH e administração do órgão veem. */
@@ -262,13 +265,45 @@ class Servidor extends Model
 
     public function fichaCompleta(): bool
     {
-        foreach (self::CAMPOS_FICHA_OBRIGATORIOS as $campo) {
-            if ($this->getAttributeValue($campo) === null) {
-                return false;
+        return $this->etapasIncompletas() === [];
+    }
+
+    /**
+     * Etapas da ficha com campo obrigatório em branco, com quantos faltam em cada uma.
+     * A ficha pode ser salva pela metade; o que faltar fica como pendência.
+     *
+     * @return array<string, int>
+     */
+    public function etapasIncompletas(): array
+    {
+        $faltam = [];
+
+        foreach (self::CAMPOS_FICHA_OBRIGATORIOS as $etapa => $campos) {
+            $condicionais = match ($etapa) {
+                'Dados pessoais' => $this->pcd ? ['tipo_deficiencia'] : [],
+                'Formação e vínculos' => [
+                    ...($this->servidor_efetivo ? ['matricula_efetiva', 'cargo_efetivo'] : []),
+                    ...($this->servidor_federal ? ['matricula_siape'] : []),
+                ],
+                default => [],
+            };
+            $n = count(array_filter([...$campos, ...$condicionais], fn ($c) => $this->getAttributeValue($c) === null
+                || ($c === 'tipo_deficiencia' && $this->tipo_deficiencia === 99)));
+
+            if ($n > 0) {
+                $faltam[$etapa] = $n;
             }
         }
 
-        return true;
+        return $faltam;
+    }
+
+    /** Resumo do que falta na ficha, para as mensagens da tela. Ex.: "Dados pessoais (2) e Endereço e banco (11)". */
+    public function resumoDaFichaIncompleta(): string
+    {
+        $partes = array_map(fn ($etapa, $n) => "{$etapa} ({$n})", array_keys($this->etapasIncompletas()), $this->etapasIncompletas());
+
+        return count($partes) > 1 ? implode(', ', array_slice($partes, 0, -1)).' e '.end($partes) : implode('', $partes);
     }
 
     /**
@@ -286,7 +321,7 @@ class Servidor extends Model
         $ano = (int) now()->year;
 
         if (! $this->fichaCompleta()) {
-            $p[] = ['titulo' => 'Ficha incompleta', 'detalhe' => 'Criada a partir do quadro de cargos. Faltam dados pessoais, endereço, contato e banco: edite a ficha para completar.'];
+            $p[] = ['titulo' => 'Ficha incompleta', 'detalhe' => 'Campos obrigatórios em branco: '.$this->resumoDaFichaIncompleta().'. Edite a ficha para completar.'];
         }
         if ($this->vaga_id === null) {
             $p[] = ['titulo' => 'Sem vaga vinculada', 'detalhe' => 'Escolha a vaga do quadro que este servidor ocupa.'];

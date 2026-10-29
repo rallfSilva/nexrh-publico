@@ -178,6 +178,7 @@
     .etapa-btn[aria-current="step"] .n { background: var(--color-azul); color: #fff; }
     .etapa-btn.feita .n { background: var(--color-agua); color: #155E6B; }
     .etapa-btn.com-erro .n { background: #FDE2E2; color: #9F1D1D; }
+    .etapa-btn.incompleta .n { background: #FFF6EE; color: #7C3A12; box-shadow: inset 0 0 0 1px #F8D3B0; }
     .etapa-cab { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; padding-bottom: 14px; margin-bottom: 18px; border-bottom: 1px solid #EEF3F7; }
     .etapa-cab p { margin: 4px 0 0; color: var(--color-texto2); font-size: 13.5px; }
     .grupo { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--color-azul); margin: 26px 0 12px; }
