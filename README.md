@@ -6,6 +6,12 @@ Gestão de pessoas para a administração pública: estrutura do órgão, usuár
 
 ## O que já funciona
 
+### Passagem para os dados reais
+
+- `php artisan nexrh:limpar-demonstracao --confirmar=APAGAR` apaga todos os dados de demonstração e deixa só os perfis, o órgão e um administrador geral com senha nova; a trilha de auditoria fica.
+- `php artisan nexrh:importar-cargos planilha.xlsx` importa o quadro de cargos como a tela de importação, com o mesmo relatório de divergências e CPF sempre mascarado. Na planilha da SELC com uma aba por mês, vale a mais recente.
+- O passo a passo está no [guia da TI](docs/guia-ti.md), seção 8.
+
 ### Entrega 9: fechamento do mês e boletim
 
 - **Fechamento do mês** em **Frequência › Fechamento do mês**: a chefia **confere** o espelho da equipe (com observação para o RH, se quiser) e o RH **fecha** o mês de cada setor, ou de todos os conferidos de uma vez. O prazo é o **dia 15 do mês seguinte** (ou o dia útil depois, se cair em fim de semana ou feriado), ajustável em **Regras e feriados** e mostrado na tela e no painel.

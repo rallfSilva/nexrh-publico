@@ -111,7 +111,32 @@ Para a folha, o escopo **frequência** dá `GET /api/v1/frequencia?mes=AAAA-MM` 
 
 **Relógio de ponto.** Exporte do relógio (ou do software dele) o **AFD** do período, em texto, e envie em **Frequência › Importar relógio de ponto**. O CPF (Portaria 671) ou o PIS (Portaria 1.510) precisa estar na ficha do servidor. Enviar o mesmo arquivo de novo não duplica marcações. Confira a data e a hora do relógio: marcações no futuro bloqueiam a importação.
 
-## 8. Problemas comuns
+## 8. Sair da demonstração e começar com os dados reais
+
+1. Faça a cópia de segurança (`scripts\backup.ps1`) e guarde-a fora do computador.
+2. No `.env`, troque `NEXRH_DEMO=true` por `NEXRH_DEMO=false`, para a demonstração não voltar quando o sistema reiniciar, e rode `docker compose up -d`.
+3. Apague a demonstração. O comando esvazia todas as tabelas e os arquivos enviados e deixa só os perfis, o órgão e um administrador geral com senha nova (a trilha de auditoria fica, porque o banco não deixa apagá-la):
+
+   ```powershell
+   docker compose exec -T app php artisan nexrh:limpar-demonstracao --confirmar=APAGAR --senha-em=/tmp/senha-admin.txt
+   docker compose cp app:/tmp/senha-admin.txt .\senha-admin.txt
+   docker compose exec -T app rm /tmp/senha-admin.txt
+   ```
+
+   Guarde a senha e apague o arquivo `senha-admin.txt`. No primeiro acesso o sistema pede a verificação em duas etapas.
+4. Importe o quadro de cargos, pela tela **Importar planilha** ou pela linha de comando (primeiro só a análise, depois a gravação):
+
+   ```powershell
+   docker compose cp "ESTRUTURA DE CARGOS.xlsx" app:/tmp/estrutura.xlsx
+   docker compose exec -T app php artisan nexrh:importar-cargos /tmp/estrutura.xlsx --so-analisar
+   docker compose exec -T app php artisan nexrh:importar-cargos /tmp/estrutura.xlsx
+   docker compose exec -T app rm /tmp/estrutura.xlsx
+   ```
+
+   Na planilha da SELC, com uma aba por mês, vale a última aba (a mais recente). O relatório diz qual foi usada.
+5. Depois, cadastre as unidades e os usuários reais e importe os servidores.
+
+## 9. Problemas comuns
 
 | Sintoma | O que fazer |
 |---|---|
