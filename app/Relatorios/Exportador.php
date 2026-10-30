@@ -4,6 +4,7 @@ namespace App\Relatorios;
 
 use App\Models\User;
 use App\Support\Auditoria;
+use App\Support\Marca;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -75,6 +76,7 @@ class Exportador
             'filtros' => $r->textoDosFiltros($user, $filtros),
             'usuario' => $user,
             'geradoEm' => now(),
+            'logo' => Marca::simboloPng(),
         ])->setPaper('a4', count($r->colunas($user)) > 5 ? 'landscape' : 'portrait');
         $pdf->getDomPDF()->getOptions()->setIsRemoteEnabled(false)->setIsFontSubsettingEnabled(true);
 

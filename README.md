@@ -1,3 +1,5 @@
+<p align="center"><img src="public/img/marca/logo-horizontal.svg" alt="NexRH Público" width="360"></p>
+
 # NexRH Público
 
 Gestão de pessoas para a administração pública: estrutura do órgão, usuários e perfis, servidores, cargos, férias e dossiê, com trilha de auditoria de tudo o que é feito. Órgão piloto: SELC/RR.

@@ -17,7 +17,7 @@
     body { font-family: 'DejaVu Sans', sans-serif; font-size: 8.6px; color: #0F2A3A; margin: 0; }
     .topo { border-bottom: 2px solid #1E5470; padding-bottom: 6px; margin-bottom: 8px; }
     .topo table { width: 100%; border-collapse: collapse; }
-    .topo .marca { width: 34px; height: 26px; padding-top: 8px; background: #1E5470; color: #fff; font-weight: bold; font-size: 16px; text-align: center; line-height: 1; border-radius: 6px; }
+    .topo .marca { width: 34px; height: 34px; display: block; }
     .topo h1 { font-size: 13px; margin: 0; color: #1E5470; letter-spacing: .02em; }
     .topo .org { font-size: 9px; color: #34729C; }
     .topo .dir { text-align: right; font-size: 8px; color: #4A6273; }
@@ -34,6 +34,9 @@
     .quebra { page-break-before: always; }
     .rodape { position: fixed; bottom: -26px; left: 0; right: 0; font-size: 7px; color: #4A6273; border-top: 1px solid #CBEAEC; padding-top: 3px; }
     .rodape .pg:after { content: counter(page); }
+    .rodape td { vertical-align: middle; }
+    .rodape .mini { width: 11px; height: 11px; vertical-align: middle; }
+    .rodape .nome { color: #1E5470; font-weight: bold; }
     table.lista { width: 100%; border-collapse: collapse; }
     table.lista th { background: #F3F7FA; font-size: 7px; text-transform: uppercase; color: #4A6273; text-align: left; border: 1px solid #9DBFD3; padding: 3px 5px; }
     table.lista td { border: 1px solid #9DBFD3; padding: 3px 5px; font-size: 8.4px; }
@@ -52,14 +55,15 @@
 
 <div class="rodape">
     <table style="width:100%"><tr>
-        <td>Ficha de Cadastro · {{ $s->nome }} · CPF {{ $s->cpfFormatado() }} · gerada pelo NexRH Público em {{ $geradoEm->format('d/m/Y H:i') }}</td>
+        <td style="width:14px"><img src="{{ $logo }}" class="mini" alt=""></td>
+        <td>Ficha de Cadastro · {{ $s->nome }} · CPF {{ $s->cpfFormatado() }} · gerada pelo <span class="nome">NexRH Público</span> em {{ $geradoEm->format('d/m/Y H:i') }}</td>
         <td style="text-align:right">Documento com dados pessoais (LGPD) · página <span class="pg"></span></td>
     </tr></table>
 </div>
 
 <div class="topo">
     <table><tr>
-        <td style="width:42px"><div class="marca">N</div></td>
+        <td style="width:42px"><img src="{{ $logo }}" class="marca" alt="NexRH Público"></td>
         <td>
             <h1>FICHA DE CADASTRO DO SERVIDOR</h1>
             <div class="org">{{ $s->orgao?->nome }} ({{ $s->orgao?->sigla }}) · para envio à SEGAD/RR</div>
