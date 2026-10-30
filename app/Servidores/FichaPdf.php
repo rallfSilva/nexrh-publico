@@ -3,6 +3,7 @@
 namespace App\Servidores;
 
 use App\Models\Servidor;
+use App\Support\Marca;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
@@ -21,6 +22,7 @@ class FichaPdf
             'bens' => $servidor->ultimaDeclaracao('bens'),
             'dependentes' => $servidor->dependentes()->ativos()->get(),
             'geradoEm' => now(),
+            'logo' => Marca::simboloPng(),
         ])->setPaper('a4');
 
         $pdf->getDomPDF()->getOptions()->setIsRemoteEnabled(false);

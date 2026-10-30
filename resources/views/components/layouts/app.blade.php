@@ -8,15 +8,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $titulo ?? 'NexRH Público' }} · NexRH Público</title>
+    <x-icones-do-site />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- Rodapé com a miniatura da logo em cada página impressa ou salva em PDF pelo navegador. --}}
+    <style>
+        @page {
+            margin: 14mm 12mm 16mm;
+            @bottom-left { content: url("{{ \App\Support\Marca::simboloSvg(12) }}") "\00a0\00a0" {!! \App\Support\Marca::textoCss('NexRH Público · gerado em '.now()->format('d/m/Y H:i').' por '.$user->name) !!}; font: 7.5pt sans-serif; color: #4A6273; vertical-align: top; padding-top: 3mm; border-top: .5pt solid #CBEAEC; }
+            @bottom-right { content: "página " counter(page) " de " counter(pages); font: 7.5pt sans-serif; color: #4A6273; vertical-align: top; padding-top: 3mm; border-top: .5pt solid #CBEAEC; }
+        }
+    </style>
 </head>
 <body>
 <a href="#conteudo" class="sr-only focus:not-sr-only">Pular para o conteúdo</a>
 <div class="app">
     <aside class="side" aria-label="Menu principal">
-        <a href="{{ route('painel') }}" class="brand">
-            <span class="logo" aria-hidden="true">N</span>
-            <span><b>NexRH Público</b><small>Gestão de pessoas</small></span>
+        <a href="{{ route('painel') }}" class="brand" aria-label="NexRH Público: ir para o painel">
+            <x-logo subtitulo="Gestão de pessoas" />
         </a>
         <nav class="nav">
             <span class="cap">Visão geral</span>

@@ -32,9 +32,19 @@
     .app { display: flex; min-height: 100vh; }
     .side { width: 264px; flex: none; background: var(--color-marinho); color: var(--color-gelo); padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
     .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px; text-decoration: none; }
-    .logo { width: 40px; height: 40px; border-radius: 12px; background: var(--color-turquesa); color: var(--color-marinho); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; flex: none; }
-    .brand b { display: block; color: #fff; font-size: 16px; letter-spacing: -.01em; }
-    .brand small { display: block; color: #A9D2EE; font-size: 12px; margin-top: 2px; }
+    /* Logo: símbolo (duas pessoas formando o N) e o nome NexRH Público */
+    .logo-nexrh { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+    .logo { display: block; flex: none; border-radius: 25%; box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 6px 16px -6px rgba(5,25,38,.55); }
+    .logo-texto b { display: block; color: #fff; font-size: 17px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; white-space: nowrap; }
+    .logo-texto b span { color: var(--color-turquesa); }
+    .logo-texto b i { font-style: normal; font-weight: 600; color: var(--color-gelo); }
+    .logo-texto small { display: block; color: #A9D2EE; font-size: 12px; margin-top: 2px; }
+    .logo-claro .logo { box-shadow: 0 6px 16px -8px rgba(30,84,112,.55); }
+    .logo-claro .logo-texto b { color: var(--color-marinho); }
+    .logo-claro .logo-texto b span, .logo-claro .logo-texto b i { color: var(--color-azul); }
+    .logo-claro .logo-texto small { color: var(--color-texto2); }
+    .brand:hover .logo { transform: rotate(-4deg); }
+    .logo { transition: transform .2s ease; }
     .nav { display: flex; flex-direction: column; gap: 2px; }
     .nav .cap { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8EC3E3; padding: 12px 12px 6px; font-weight: 600; }
     .nav a, .nav span.soon { white-space: nowrap; display: flex; align-items: center; gap: 12px; padding: 0 12px; min-height: 44px; border-radius: 10px; color: var(--color-gelo); text-decoration: none; font-size: 14px; font-weight: 500; }
@@ -145,6 +155,8 @@
     .auth-hero::before { content: ""; position: absolute; right: -140px; top: -120px; width: 420px; height: 420px; border-radius: 50%; background: var(--color-azul); opacity: .7; }
     .auth-hero::after { content: ""; position: absolute; left: -100px; bottom: -160px; width: 360px; height: 360px; border-radius: 50%; background: var(--color-turquesa); opacity: .18; }
     .auth-hero > * { position: relative; }
+    .auth-hero > .auth-marca-dagua { position: absolute; right: -60px; bottom: 40px; width: 360px; height: 360px; opacity: .06; pointer-events: none; }
+    .auth-hero .logo-texto b { font-size: 20px; }
     .auth-hero h1 { font-size: 40px; line-height: 1.12; font-weight: 800; letter-spacing: -.03em; margin: 0 0 16px; max-width: 520px; }
     .auth-hero p { color: var(--color-gelo); font-size: 16px; line-height: 1.6; max-width: 480px; margin: 0; }
     .auth-pontos { display: grid; gap: 14px; margin-top: 32px; max-width: 460px; }
@@ -507,6 +519,7 @@
         .auth-hero { padding: 32px 24px; }
         .auth-hero h1 { font-size: 30px; }
         .auth-pontos { display: none; }
+        .auth-logo-form, .auth-marca-dagua { display: none; }
         .doc { flex-wrap: wrap; }
         .doc .txt { flex-basis: calc(100% - 60px); }
         .doc-acoes { width: 100%; justify-content: flex-end; }

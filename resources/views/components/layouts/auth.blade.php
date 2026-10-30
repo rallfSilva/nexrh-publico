@@ -4,14 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $titulo ?? 'Entrar' }} · NexRH Público</title>
+    <x-icones-do-site />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body>
 <div class="auth">
     <section class="auth-hero">
+        <img src="{{ asset('img/marca/simbolo-contorno.svg') }}" alt="" class="auth-marca-dagua" aria-hidden="true">
         <div class="brand">
-            <span class="logo" aria-hidden="true">N</span>
-            <span><b>NexRH Público</b><small>Gestão de pessoas para o setor público</small></span>
+            <x-logo :tamanho="48" subtitulo="Gestão de pessoas para o setor público" />
         </div>
         <div>
             <h1>Pessoas, cargos e férias do órgão em um só lugar.</h1>
@@ -26,6 +27,7 @@
     </section>
     <section class="auth-form">
         <div class="auth-box">
+            <x-logo :tamanho="44" class="logo-claro auth-logo-form" subtitulo="Gestão de pessoas para o setor público" />
             {{ $slot }}
         </div>
     </section>

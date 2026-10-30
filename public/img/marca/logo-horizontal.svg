@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" role="img" aria-label="NexRH Público">
+  <defs>
+    <linearGradient id="nexrh-fundo-h" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34729C"/>
+      <stop offset="1" stop-color="#1E5470"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(4 4)">
+    <rect width="64" height="64" rx="16" fill="url(#nexrh-fundo-h)"/>
+    <path d="M21 29.5L43 48" stroke="#D1ECFF" stroke-width="8.5" stroke-linecap="round"/>
+    <path d="M21 29.5V48" stroke="#6CB1DA" stroke-width="8.5" stroke-linecap="round"/>
+    <path d="M43 29.5V48" stroke="#6EC1D1" stroke-width="8.5" stroke-linecap="round"/>
+    <circle cx="21" cy="17" r="5.25" fill="#6CB1DA"/>
+    <circle cx="43" cy="17" r="5.25" fill="#6EC1D1"/>
+  </g>
+  <g font-family="'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif">
+    <text x="84" y="39" font-size="30" font-weight="800" letter-spacing="-0.6" fill="#1E5470">Nex<tspan fill="#34729C">RH</tspan> <tspan font-weight="600" fill="#34729C">Público</tspan></text>
+    <text x="85" y="58" font-size="12.5" font-weight="600" letter-spacing="1.6" fill="#6CB1DA">GESTÃO DE PESSOAS</text>
+  </g>
+</svg>
